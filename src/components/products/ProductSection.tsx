@@ -27,6 +27,23 @@ import {
   useGetTireLoadIndicesQuery,
   useGetTireSpeedIndicesQuery
 } from '../../store/api'
+import {
+  CATEGORY_AUTO,
+  CATEGORY_TIRE,
+  EMPTY_HELPER,
+  ERROR_AUTO_SUBCATEGORY,
+  ERROR_ENTER_BRAND,
+  ERROR_ENTER_MODEL,
+  ERROR_ENTER_SIZE,
+  ERROR_LOAD_INDEX,
+  ERROR_SELECT_BRAND,
+  ERROR_SELECT_CATEGORY,
+  ERROR_SELECT_MODEL,
+  ERROR_SPEED_INDEX,
+  LABEL_ADD,
+  LABEL_NEW_BRAND,
+  LABEL_NEW_MODEL
+} from './constants'
 
 const Form = styled.form`
   display: grid;
@@ -70,8 +87,8 @@ export const ProductSection = () => {
     enableReinitialize: true,
     validate: (values) => {
       const selected = categories?.find((category) => category.id === values.categoryId)
-      const isTire = selected?.name === 'Шини'
-      const isAuto = selected?.name === 'Автотовари'
+      const isTire = selected?.name === CATEGORY_TIRE
+      const isAuto = selected?.name === CATEGORY_AUTO
 
       const errors: {
         brand?: string
@@ -87,44 +104,44 @@ export const ProductSection = () => {
         autoSubcategory?: string
       } = {}
       if (!values.categoryId) {
-        errors.categoryId = 'Оберіть категорію'
+        errors.categoryId = ERROR_SELECT_CATEGORY
       }
       if (isTire) {
         if (!values.tireBrandId) {
-          errors.tireBrandId = 'Оберіть бренд'
+          errors.tireBrandId = ERROR_SELECT_BRAND
         }
         if (values.tireBrandId === 'NEW' && !values.newBrandName.trim()) {
-          errors.newBrandName = 'Вкажи бренд'
+          errors.newBrandName = ERROR_ENTER_BRAND
         }
         if (values.tireBrandId !== 'NEW') {
           if (!values.tireModelId) {
-            errors.tireModelId = 'Оберіть модель'
+            errors.tireModelId = ERROR_SELECT_MODEL
           }
           if (values.tireModelId === 'NEW' && !values.newModelName.trim()) {
-            errors.newModelName = 'Вкажи модель'
+            errors.newModelName = ERROR_ENTER_MODEL
           }
         } else if (!values.newModelName.trim()) {
-          errors.newModelName = 'Вкажи модель'
+          errors.newModelName = ERROR_ENTER_MODEL
         }
         if (!values.tireSize.trim()) {
-          errors.tireSize = 'Вкажи розмір'
+          errors.tireSize = ERROR_ENTER_SIZE
         }
         if (!values.tireSpeedIndexId) {
-          errors.tireSpeedIndexId = 'Індекс швидкості'
+          errors.tireSpeedIndexId = ERROR_SPEED_INDEX
         }
         if (!values.tireLoadIndexId) {
-          errors.tireLoadIndexId = 'Індекс навантаження'
+          errors.tireLoadIndexId = ERROR_LOAD_INDEX
         }
       }
       if (isAuto) {
         if (!values.brand.trim()) {
-          errors.brand = 'Вкажи бренд'
+          errors.brand = ERROR_ENTER_BRAND
         }
         if (!values.model.trim()) {
-          errors.model = 'Вкажи модель'
+          errors.model = ERROR_ENTER_MODEL
         }
         if (!values.autoSubcategory.trim()) {
-          errors.autoSubcategory = 'Вкажи підкатегорію'
+          errors.autoSubcategory = ERROR_AUTO_SUBCATEGORY
         }
       }
       return errors
@@ -182,8 +199,8 @@ export const ProductSection = () => {
   })
 
   const selectedCategory = categories?.find((category) => category.id === formik.values.categoryId)
-  const isTire = selectedCategory?.name === 'Шини'
-  const isAuto = selectedCategory?.name === 'Автотовари'
+  const isTire = selectedCategory?.name === CATEGORY_TIRE
+  const isAuto = selectedCategory?.name === CATEGORY_AUTO
   const selectedBrand = useMemo(
     () => tireBrands.find((brand) => brand.id === formik.values.tireBrandId),
     [formik.values.tireBrandId, tireBrands]
@@ -204,7 +221,7 @@ export const ProductSection = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={Boolean(formik.touched.brand && formik.errors.brand)}
-              helperText={formik.touched.brand ? formik.errors.brand : ' '}
+              helperText={formik.touched.brand ? formik.errors.brand : EMPTY_HELPER}
             />
             <TextField
               label="Модель"
@@ -213,7 +230,7 @@ export const ProductSection = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={Boolean(formik.touched.model && formik.errors.model)}
-              helperText={formik.touched.model ? formik.errors.model : ' '}
+              helperText={formik.touched.model ? formik.errors.model : EMPTY_HELPER}
             />
           </TwoColumn>
         )}
@@ -240,7 +257,7 @@ export const ProductSection = () => {
           }}
           onBlur={formik.handleBlur}
           error={Boolean(formik.touched.categoryId && formik.errors.categoryId)}
-          helperText={formik.touched.categoryId ? formik.errors.categoryId : ' '}
+          helperText={formik.touched.categoryId ? formik.errors.categoryId : EMPTY_HELPER}
           fullWidth
         >
           {(categories ?? []).map((category) => (
@@ -267,8 +284,8 @@ export const ProductSection = () => {
                 }}
                 onBlur={formik.handleBlur}
                 error={Boolean(formik.touched.tireBrandId && formik.errors.tireBrandId)}
-                helperText={
-                  formik.touched.tireBrandId ? formik.errors.tireBrandId : ' '
+              helperText={
+                  formik.touched.tireBrandId ? formik.errors.tireBrandId : EMPTY_HELPER
                 }
                 fullWidth
               >
@@ -277,17 +294,17 @@ export const ProductSection = () => {
                     {brand.name}
                   </MenuItem>
                 ))}
-                <MenuItem value="NEW">Додати</MenuItem>
+                <MenuItem value="NEW">{LABEL_ADD}</MenuItem>
               </TextField>
 
               {formik.values.tireBrandId === 'NEW' ? (
                 <TextField
-                  label="Новий бренд"
+                  label={LABEL_NEW_BRAND}
                   name="newBrandName"
                   value={formik.values.newBrandName}
                   onChange={formik.handleChange}
                   error={Boolean(formik.errors.newBrandName)}
-                  helperText={formik.errors.newBrandName ?? ' '}
+                  helperText={formik.errors.newBrandName ?? EMPTY_HELPER}
                 />
               ) : (
                 <TextField
@@ -304,7 +321,7 @@ export const ProductSection = () => {
                   onBlur={formik.handleBlur}
                   error={Boolean(formik.touched.tireModelId && formik.errors.tireModelId)}
                   helperText={
-                    formik.touched.tireModelId ? formik.errors.tireModelId : ' '
+                    formik.touched.tireModelId ? formik.errors.tireModelId : EMPTY_HELPER
                   }
                   disabled={!formik.values.tireBrandId}
                   fullWidth
@@ -314,31 +331,31 @@ export const ProductSection = () => {
                       {model.name}
                     </MenuItem>
                   ))}
-                  <MenuItem value="NEW">Додати</MenuItem>
+                  <MenuItem value="NEW">{LABEL_ADD}</MenuItem>
                 </TextField>
               )}
             </TwoColumn>
 
             {formik.values.tireBrandId === 'NEW' && (
               <TextField
-                label="Нова модель"
+                label={LABEL_NEW_MODEL}
                 name="newModelName"
                 value={formik.values.newModelName}
                 onChange={formik.handleChange}
                 error={Boolean(formik.errors.newModelName)}
-                helperText={formik.errors.newModelName ?? ' '}
+                helperText={formik.errors.newModelName ?? EMPTY_HELPER}
                 disabled={!formik.values.newBrandName.trim()}
               />
             )}
 
             {formik.values.tireBrandId !== 'NEW' && formik.values.tireModelId === 'NEW' && (
               <TextField
-                label="Нова модель"
+                label={LABEL_NEW_MODEL}
                 name="newModelName"
                 value={formik.values.newModelName}
                 onChange={formik.handleChange}
                 error={Boolean(formik.errors.newModelName)}
-                helperText={formik.errors.newModelName ?? ' '}
+                helperText={formik.errors.newModelName ?? EMPTY_HELPER}
                 disabled={!formik.values.tireBrandId}
               />
             )}
@@ -351,7 +368,7 @@ export const ProductSection = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 error={Boolean(formik.touched.tireSize && formik.errors.tireSize)}
-                helperText={formik.touched.tireSize ? formik.errors.tireSize : ' '}
+                helperText={formik.touched.tireSize ? formik.errors.tireSize : EMPTY_HELPER}
                 placeholder="205/55 R16"
               />
               <TextField
@@ -365,7 +382,9 @@ export const ProductSection = () => {
                   formik.touched.tireSpeedIndexId && formik.errors.tireSpeedIndexId
                 )}
                 helperText={
-                  formik.touched.tireSpeedIndexId ? formik.errors.tireSpeedIndexId : ' '
+                  formik.touched.tireSpeedIndexId
+                    ? formik.errors.tireSpeedIndexId
+                    : EMPTY_HELPER
                 }
               >
                 {speedIndices.map((index) => (
@@ -391,7 +410,7 @@ export const ProductSection = () => {
                 formik.touched.tireLoadIndexId && formik.errors.tireLoadIndexId
               )}
               helperText={
-                formik.touched.tireLoadIndexId ? formik.errors.tireLoadIndexId : ' '
+                formik.touched.tireLoadIndexId ? formik.errors.tireLoadIndexId : EMPTY_HELPER
               }
             >
               {loadIndices.map((index) => (
@@ -433,7 +452,9 @@ export const ProductSection = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             error={Boolean(formik.touched.autoSubcategory && formik.errors.autoSubcategory)}
-            helperText={formik.touched.autoSubcategory ? formik.errors.autoSubcategory : ' '}
+            helperText={
+              formik.touched.autoSubcategory ? formik.errors.autoSubcategory : EMPTY_HELPER
+            }
             placeholder="Масла, фільтра..."
             fullWidth
           />
@@ -452,11 +473,7 @@ export const ProductSection = () => {
         </Button>
       </Form>
 
-      {isLoading && <CircularProgress size={28} />}
-      {isError && <Alert severity="error">Не вдалося завантажити товари</Alert>}
-      {saveError && <Alert severity="error">Не вдалося створити товар</Alert>}
-
-      <Table size="small">
+      {isLoading ? <CircularProgress size={28} /> :       <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell>Бренд</TableCell>
@@ -472,7 +489,7 @@ export const ProductSection = () => {
               <TableCell>{product.model}</TableCell>
               <TableCell>{product.category?.name}</TableCell>
               <TableCell>
-                {product.category?.name === 'Шини'
+                {product.category?.name === CATEGORY_TIRE
                   ? `${product.tireSize || ''} ${product.tireSpeedIndex?.code || ''} ${
                       product.tireLoadIndex?.code || ''
                     } ${
@@ -483,7 +500,9 @@ export const ProductSection = () => {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table>}
+      {isError && <Alert severity="error">Не вдалося завантажити товари</Alert>}
+      {saveError && <Alert severity="error">Не вдалося створити товар</Alert>}
     </SectionCard>
   )
 }
