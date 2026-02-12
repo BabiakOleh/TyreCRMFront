@@ -34,5 +34,7 @@ export type CreateProductInput = {
   tireIsRunFlat?: boolean
   tireBrandId?: string
   tireModelId?: string
+  tireBrandName?: string
+  tireModelName?: string
   autoSubcategory?: string
 }

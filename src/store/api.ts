@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import type { Category } from '../types/category'
 import type { CreateProductInput, Product } from '../types/product'
-import type { TireBrand, TireLoadIndex, TireModel, TireSpeedIndex } from '../types/tire'
+import type { TireBrand, TireLoadIndex, TireSpeedIndex } from '../types/tire'
 
 export const api = createApi({
   reducerPath: 'api',
@@ -36,24 +36,41 @@ export const api = createApi({
         method: 'POST',
         body
       }),
-      invalidatesTags: [{ type: 'Product', id: 'LIST' }]
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            api.util.updateQueryData('getProducts', undefined, (draft) => {
+              if (!draft.some((item) => item.id === data.id)) {
+                draft.unshift(data)
+              }
+            })
+          )
+          if (data.tireBrand && data.tireModel) {
+            const brand = data.tireBrand
+            const model = data.tireModel
+            dispatch(
+              api.util.updateQueryData('getTireBrands', undefined, (draft) => {
+                const existingBrand = draft.find((item) => item.id === brand.id)
+                if (existingBrand) {
+                  const models = existingBrand.models ?? []
+                  const hasModel = models.some((item) => item.id === model.id)
+                  if (!hasModel) {
+                    existingBrand.models = [...models, model]
+                  }
+                } else {
+                  draft.push({ ...brand, models: [model] })
+                }
+              })
+            )
+          }
+        } catch {
+          // ignore cache update errors
+        }
+      }
     }),
     getTireBrands: builder.query<TireBrand[], void>({
       query: () => '/tire-brands'
-    }),
-    createTireBrand: builder.mutation<TireBrand, { name: string }>({
-      query: (body) => ({
-        url: '/tire-brands',
-        method: 'POST',
-        body
-      })
-    }),
-    createTireModel: builder.mutation<TireModel, { brandId: string; name: string }>({
-      query: (body) => ({
-        url: '/tire-models',
-        method: 'POST',
-        body
-      })
     }),
     getTireSpeedIndices: builder.query<TireSpeedIndex[], void>({
       query: () => '/tire-indices/speed'
@@ -69,8 +86,6 @@ export const {
   useGetProductsQuery,
   useCreateProductMutation,
   useGetTireBrandsQuery,
-  useCreateTireBrandMutation,
-  useCreateTireModelMutation,
   useGetTireSpeedIndicesQuery,
   useGetTireLoadIndicesQuery
 } = api

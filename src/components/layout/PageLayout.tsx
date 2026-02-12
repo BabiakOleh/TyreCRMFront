@@ -6,8 +6,9 @@ export const PageLayout = styled.div`
 `
 
 export const Content = styled.main`
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  width: 100%;
   padding: 32px 20px 64px;
   display: flex;
   flex-direction: column;
@@ -16,6 +17,11 @@ export const Content = styled.main`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
-`
+  
+  /* Mobile */
+  @media (max-width: 920px) {
+    grid-template-columns: 1fr;
+  }
+`;
