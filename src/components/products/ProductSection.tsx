@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useFormik } from 'formik'
 import styled from 'styled-components'
 import {
@@ -7,7 +7,9 @@ import {
   CircularProgress,
   FormControlLabel,
   Checkbox,
+  IconButton,
   MenuItem,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -19,11 +21,13 @@ import {
 import { SectionCard } from '../shared/SectionCard'
 import {
   useCreateProductMutation,
+  useDeleteProductMutation,
   useGetCategoriesQuery,
   useGetProductsQuery,
   useGetTireBrandsQuery,
   useGetTireLoadIndicesQuery,
-  useGetTireSpeedIndicesQuery
+  useGetTireSpeedIndicesQuery,
+  useUpdateProductMutation
 } from '../../store/api'
 import {
   CATEGORY_AUTO,
@@ -43,6 +47,10 @@ import {
   LABEL_NEW_MODEL
 } from './constants'
 import type { ProductErrors } from './types'
+import type { Product } from '../../types/product'
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+
 
 const Form = styled.form`
   display: grid;
@@ -63,6 +71,9 @@ export const ProductSection = () => {
   const { data: loadIndices = [] } = useGetTireLoadIndicesQuery()
   const [createProduct, { isLoading: isSaving, error: saveError }] =
     useCreateProductMutation()
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation()
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation()
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
 
   const formik = useFormik({
     initialValues: {
@@ -162,7 +173,7 @@ export const ProductSection = () => {
         }
       }
 
-      await createProduct({
+      const payload = {
         brand: brandName || values.brand.trim(),
         model: modelName || values.model.trim(),
         categoryId: values.categoryId,
@@ -177,8 +188,15 @@ export const ProductSection = () => {
         tireIsXL: values.tireIsXL,
         tireIsRunFlat: values.tireIsRunFlat,
         autoSubcategory: values.autoSubcategory.trim() || undefined
-      }).unwrap()
+      }
+
+      if (editingProductId) {
+        await updateProduct({ id: editingProductId, ...payload }).unwrap()
+      } else {
+        await createProduct(payload).unwrap()
+      }
       helpers.resetForm()
+      setEditingProductId(null)
     }
   })
 
@@ -190,6 +208,36 @@ export const ProductSection = () => {
     [formik.values.tireBrandId, tireBrands]
   )
   const modelsForBrand = selectedBrand?.models ?? []
+
+  const startEdit = (product: Product) => {
+    setEditingProductId(product.id)
+    formik.setValues({
+      categoryId: product.category?.id ?? '',
+      brand: product.brand ?? '',
+      model: product.model ?? '',
+      unit: product.unit ?? '',
+      tireSize: product.tireSize ?? '',
+      tireSpeedIndexId: product.tireSpeedIndexId ?? '',
+      tireLoadIndexId: product.tireLoadIndexId ?? '',
+      tireBrandId: product.tireBrandId ?? '',
+      tireModelId: product.tireModelId ?? '',
+      newBrandName: '',
+      newModelName: '',
+      tireIsXL: Boolean(product.tireIsXL),
+      tireIsRunFlat: Boolean(product.tireIsRunFlat),
+      autoSubcategory: product.autoSubcategory ?? ''
+    })
+  }
+
+  const handleDelete = async (productId: string) => {
+    if (window.confirm('Видалити товар?')) {
+      await deleteProduct(productId).unwrap()
+      if (editingProductId === productId) {
+        formik.resetForm()
+        setEditingProductId(null)
+      }
+    }
+  }
 
   return (
     <SectionCard>
@@ -452,9 +500,32 @@ export const ProductSection = () => {
           placeholder="шт."
         />
 
-        <Button type="submit" variant="contained" disabled={!formik.isValid || isSaving}>
-          {isSaving ? 'Зберігаю...' : 'Додати товар'}
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={!formik.isValid || isSaving || isUpdating}
+          >
+            {editingProductId
+              ? isUpdating
+                ? 'Оновлюю...'
+                : 'Зберегти зміни'
+              : isSaving
+                ? 'Зберігаю...'
+                : 'Додати товар'}
+          </Button>
+          {editingProductId && (
+            <Button
+              variant="outlined"
+              onClick={() => {
+                formik.resetForm()
+                setEditingProductId(null)
+              }}
+            >
+              Скасувати
+            </Button>
+          )}
+        </Stack>
       </Form>
 
       {isLoading 
@@ -468,6 +539,7 @@ export const ProductSection = () => {
             <TableCell>Модель</TableCell>
             <TableCell>Категорія</TableCell>
             <TableCell>Бренд</TableCell>
+            <TableCell>Змінити</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -485,6 +557,24 @@ export const ProductSection = () => {
               <TableCell>{product.brand}</TableCell>
               <TableCell>{product.model}</TableCell>
               <TableCell>{product.category?.name}</TableCell>
+              <TableCell>
+                <IconButton
+                  aria-label="edit"
+                  size="small"
+                  onClick={() => startEdit(product)}
+                >
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  aria-label="delete"
+                  size="small"
+                  color="error"
+                  onClick={() => handleDelete(product.id)}
+                  disabled={isDeleting}
+                >
+                  <DeleteForeverOutlinedIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

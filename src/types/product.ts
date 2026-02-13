@@ -38,3 +38,7 @@ export type CreateProductInput = {
   tireModelName?: string
   autoSubcategory?: string
 }
+
+export type UpdateProductInput = CreateProductInput & {
+  id: string
+}
