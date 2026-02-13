@@ -47,9 +47,9 @@ export const api = createApi({
               }
             })
           )
-          if (data.tireBrand && data.tireModel) {
-            const brand = data.tireBrand
-            const model = data.tireModel
+          if (data.tireDetails?.brand && data.tireDetails?.model) {
+            const brand = data.tireDetails.brand
+            const model = data.tireDetails.model
             dispatch(
               api.util.updateQueryData('getTireBrands', undefined, (draft) => {
                 const existingBrand = draft.find((item) => item.id === brand.id)
@@ -87,9 +87,9 @@ export const api = createApi({
               }
             })
           )
-          if (data.tireBrand && data.tireModel) {
-            const brand = data.tireBrand
-            const model = data.tireModel
+          if (data.tireDetails?.brand && data.tireDetails?.model) {
+            const brand = data.tireDetails.brand
+            const model = data.tireDetails.model
             dispatch(
               api.util.updateQueryData('getTireBrands', undefined, (draft) => {
                 const existingBrand = draft.find((item) => item.id === brand.id)

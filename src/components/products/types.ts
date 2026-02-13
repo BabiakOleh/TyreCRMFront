@@ -1,5 +1,5 @@
 export interface ProductErrors {
-    brand?: string
+    autoBrand?: string
     categoryId?: string
     tireSize?: string
     tireSpeedIndexId?: string
@@ -9,5 +9,5 @@ export interface ProductErrors {
     newBrandName?: string
     newModelName?: string
     autoSubcategory?: string
-    model?: string
+    autoModel?: string
 };

@@ -79,8 +79,8 @@ export const ProductSection = () => {
   const formik = useFormik({
     initialValues: {
       categoryId: categories?.[0]?.id ?? '',
-      brand: '',
-      model: '',
+      autoBrand: '',
+      autoModel: '',
       unit: '',
       tireSize: '',
       tireSpeedIndexId: '',
@@ -131,11 +131,11 @@ export const ProductSection = () => {
         }
       }
       if (isAuto) {
-        if (!values.brand.trim()) {
-          errors.brand = ERROR_ENTER_BRAND
+        if (!values.autoBrand.trim()) {
+          errors.autoBrand = ERROR_ENTER_BRAND
         }
-        if (!values.model.trim()) {
-          errors.model = ERROR_ENTER_MODEL
+        if (!values.autoModel.trim()) {
+          errors.autoModel = ERROR_ENTER_MODEL
         }
         if (!values.autoSubcategory.trim()) {
           errors.autoSubcategory = ERROR_AUTO_SUBCATEGORY
@@ -146,37 +146,24 @@ export const ProductSection = () => {
     onSubmit: async (values, helpers) => {
       let tireBrandId: string | undefined = values.tireBrandId || undefined
       let tireModelId: string | undefined = values.tireModelId || undefined
-      let brandName = values.brand.trim()
-      let modelName = values.model.trim()
       let tireBrandName = values.newBrandName.trim()
       let tireModelName = values.newModelName.trim()
 
       if (isTire) {
         if (tireBrandId === 'NEW') {
           tireBrandId = undefined
-          brandName = tireBrandName
         } else {
-          const existingBrand = tireBrands.find((brand) => brand.id === tireBrandId)
-          brandName = existingBrand?.name ?? brandName
           tireBrandName = ''
         }
 
         if (tireModelId === 'NEW' || !tireModelId) {
           tireModelId = undefined
-          modelName = tireModelName
         } else {
-          const existingModel =
-            tireBrands
-              .find((brand) => brand.id === tireBrandId)
-              ?.models?.find((model) => model.id === tireModelId) ?? null
-          modelName = existingModel?.name ?? modelName
           tireModelName = ''
         }
       }
 
       const payload = {
-        brand: brandName || values.brand.trim(),
-        model: modelName || values.model.trim(),
         categoryId: values.categoryId,
         unit: values.unit.trim() || undefined,
         tireSize: values.tireSize.trim() || undefined,
@@ -188,6 +175,8 @@ export const ProductSection = () => {
         tireModelName: tireModelName || undefined,
         tireIsXL: values.tireIsXL,
         tireIsRunFlat: values.tireIsRunFlat,
+        autoBrand: values.autoBrand.trim() || undefined,
+        autoModel: values.autoModel.trim() || undefined,
         autoSubcategory: values.autoSubcategory.trim() || undefined
       }
 
@@ -214,19 +203,19 @@ export const ProductSection = () => {
     setEditingProductId(product.id)
     formik.setValues({
       categoryId: product.category?.id ?? '',
-      brand: product.brand ?? '',
-      model: product.model ?? '',
+      autoBrand: product.autoDetails?.brand ?? '',
+      autoModel: product.autoDetails?.model ?? '',
       unit: product.unit ?? '',
-      tireSize: product.tireSize ?? '',
-      tireSpeedIndexId: product.tireSpeedIndexId ?? '',
-      tireLoadIndexId: product.tireLoadIndexId ?? '',
-      tireBrandId: product.tireBrandId ?? '',
-      tireModelId: product.tireModelId ?? '',
+      tireSize: product.tireDetails?.size ?? '',
+      tireSpeedIndexId: product.tireDetails?.speedIndex?.id ?? '',
+      tireLoadIndexId: product.tireDetails?.loadIndex?.id ?? '',
+      tireBrandId: product.tireDetails?.brand?.id ?? '',
+      tireModelId: product.tireDetails?.model?.id ?? '',
       newBrandName: '',
       newModelName: '',
-      tireIsXL: Boolean(product.tireIsXL),
-      tireIsRunFlat: Boolean(product.tireIsRunFlat),
-      autoSubcategory: product.autoSubcategory ?? ''
+      tireIsXL: Boolean(product.tireDetails?.isXL),
+      tireIsRunFlat: Boolean(product.tireDetails?.isRunFlat),
+      autoSubcategory: product.autoDetails?.subcategory ?? ''
     })
   }
 
@@ -261,8 +250,8 @@ export const ProductSection = () => {
           value={formik.values.categoryId}
           onChange={(event) => {
             formik.handleChange(event)
-            formik.setFieldValue('brand', '')
-            formik.setFieldValue('model', '')
+            formik.setFieldValue('autoBrand', '')
+            formik.setFieldValue('autoModel', '')
             formik.setFieldValue('tireBrandId', '')
             formik.setFieldValue('tireModelId', '')
             formik.setFieldValue('newBrandName', '')
@@ -290,21 +279,25 @@ export const ProductSection = () => {
           <TwoColumn>
             <TextField
               label="Бренд"
-              name="brand"
-              value={formik.values.brand}
+              name="autoBrand"
+              value={formik.values.autoBrand}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={Boolean(formik.touched.brand && formik.errors.brand)}
-              helperText={formik.touched.brand ? formik.errors.brand : EMPTY_HELPER}
+              error={Boolean(formik.touched.autoBrand && formik.errors.autoBrand)}
+              helperText={
+                formik.touched.autoBrand ? formik.errors.autoBrand : EMPTY_HELPER
+              }
             />
             <TextField
               label="Модель"
-              name="model"
-              value={formik.values.model}
+              name="autoModel"
+              value={formik.values.autoModel}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={Boolean(formik.touched.model && formik.errors.model)}
-              helperText={formik.touched.model ? formik.errors.model : EMPTY_HELPER}
+              error={Boolean(formik.touched.autoModel && formik.errors.autoModel)}
+              helperText={
+                formik.touched.autoModel ? formik.errors.autoModel : EMPTY_HELPER
+              }
             />
           </TwoColumn>
         )}
@@ -558,15 +551,23 @@ export const ProductSection = () => {
             <TableRow key={product.id}>
               <TableCell>
                 {product.category?.name === CATEGORY_TIRE
-                  ? `${product.tireSize || ''} ${product.tireLoadIndex?.code || ''}${
-                      product.tireSpeedIndex?.code || ''
-                    } ${
-                      product.tireIsXL ? 'XL' : ''
-                    } ${product.tireIsRunFlat ? 'RunFlat' : ''}`.trim() || '—'
-                  : product.autoSubcategory || '—'}
+                  ? `${product.tireDetails?.size || ''} ${
+                      product.tireDetails?.loadIndex?.code || ''
+                    }${product.tireDetails?.speedIndex?.code || ''} ${
+                      product.tireDetails?.isXL ? 'XL' : ''
+                    } ${product.tireDetails?.isRunFlat ? 'RunFlat' : ''}`.trim() || '—'
+                  : product.autoDetails?.subcategory || '—'}
               </TableCell>
-              <TableCell>{product.brand}</TableCell>
-              <TableCell>{product.model}</TableCell>
+              <TableCell>
+                {product.category?.name === CATEGORY_TIRE
+                  ? product.tireDetails?.brand?.name || '—'
+                  : product.autoDetails?.brand || '—'}
+              </TableCell>
+              <TableCell>
+                {product.category?.name === CATEGORY_TIRE
+                  ? product.tireDetails?.model?.name || '—'
+                  : product.autoDetails?.model || '—'}
+              </TableCell>
               <TableCell>{product.category?.name}</TableCell>
               <TableCell>
                 <IconButton
