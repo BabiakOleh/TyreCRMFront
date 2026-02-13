@@ -20,7 +20,8 @@ const pageTitles: Record<string, { title: string; subtitle?: string }> = {
   '/counterparties': { title: 'Контрагенти' },
   '/sales': { title: 'Продажі' },
   '/purchases': { title: 'Закупки' },
-  '/report': { title: 'Звіт' }
+  '/report': { title: 'Звіт' },
+  '/reference': { title: 'Довідник' },
 }
 
 export const AppShell = () => {

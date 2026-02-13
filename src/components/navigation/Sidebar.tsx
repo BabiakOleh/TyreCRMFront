@@ -3,9 +3,11 @@ import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import { Brand, Nav, NavItem, SidebarWrapper } from './styles'
 
 const navItems = [
+  { to: '/reference', label: 'Довідник', icon: <AssignmentOutlinedIcon fontSize="small" /> },
   { to: '/products', label: 'Товари', icon: <Inventory2OutlinedIcon fontSize="small" /> },
   { to: '/counterparties', label: 'Контрагенти', icon: <PeopleOutlineIcon fontSize="small" /> },
   { to: '/sales', label: 'Продажі', icon: <ShoppingCartOutlinedIcon fontSize="small" /> },

@@ -5,6 +5,7 @@ import { ProductsPage } from './pages/ProductsPage'
 import { PurchasesPage } from './pages/PurchasesPage'
 import { ReportPage } from './pages/ReportPage'
 import { SalesPage } from './pages/SalesPage'
+import { ReferencePage } from './pages/ReferencePage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/purchases" element={<PurchasesPage />} />
           <Route path="/report" element={<ReportPage />} />
+          <Route path="/reference" element={<ReferencePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
