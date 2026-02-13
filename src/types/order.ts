@@ -16,6 +16,7 @@ export type CreateOrderItemInput = {
 
 export type Order = {
   id: string
+  documentNumber?: string | null
   type: 'PURCHASE' | 'SALE'
   status: 'DRAFT' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
   orderDate: string
@@ -26,7 +27,20 @@ export type Order = {
 
 export type CreatePurchaseInput = {
   type: 'PURCHASE'
+  documentNumber?: string
   counterpartyId: string
   orderDate?: string
   items: CreateOrderItemInput[]
+}
+
+export type CreateSaleInput = {
+  type: 'SALE'
+  documentNumber?: string
+  counterpartyId: string
+  orderDate?: string
+  items: CreateOrderItemInput[]
+}
+
+export type UpdateOrderInput = (CreatePurchaseInput | CreateSaleInput) & {
+  id: string
 }

@@ -20,6 +20,7 @@ const pageTitles: Record<string, { title: string; subtitle?: string }> = {
   '/counterparties': { title: 'Контрагенти' },
   '/sales': { title: 'Продажі' },
   '/purchases': { title: 'Закупки' },
+  '/stock': { title: 'Залишки' },
   '/report': { title: 'Звіт' },
   '/reference': { title: 'Довідник' },
 }
@@ -29,7 +30,9 @@ export const AppShell = () => {
   const meta =
     location.pathname.startsWith('/purchases/')
       ? { title: 'Документ закупки' }
-      : pageTitles[location.pathname] ?? pageTitles['/products']
+      : location.pathname.startsWith('/sales/')
+        ? { title: 'Документ продажу' }
+        : pageTitles[location.pathname] ?? pageTitles['/products']
 
   return (
     <Shell>

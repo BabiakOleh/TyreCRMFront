@@ -4,6 +4,7 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { Brand, Nav, NavItem, SidebarWrapper } from './styles'
 
 const navItems = [
@@ -12,6 +13,7 @@ const navItems = [
   { to: '/counterparties', label: 'Контрагенти', icon: <PeopleOutlineIcon fontSize="small" /> },
   { to: '/sales', label: 'Продажі', icon: <ShoppingCartOutlinedIcon fontSize="small" /> },
   { to: '/purchases', label: 'Закупки', icon: <LocalShippingOutlinedIcon fontSize="small" /> },
+  { to: '/stock', label: 'Залишки', icon: <WarehouseOutlinedIcon fontSize="small" /> },
   { to: '/report', label: 'Звіт', icon: <AssessmentOutlinedIcon fontSize="small" /> }
 ]
 

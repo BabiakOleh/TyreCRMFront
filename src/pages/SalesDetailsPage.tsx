@@ -18,14 +18,14 @@ const formatDate = (value: string) =>
 
 const formatMoney = (cents: number) => `${(cents / 100).toFixed(2)} грн`
 
-export const PurchaseDetailsPage = () => {
+export const SalesDetailsPage = () => {
   const { id } = useParams()
   const { data, isLoading, isError } = useGetOrderByIdQuery(id ?? '')
 
   return (
     <Content>
       <SectionCard>
-        <Typography variant="h6">Документ закупки</Typography>
+        <Typography variant="h6">Документ продажу</Typography>
         {isLoading && <CircularProgress size={28} />}
         {isError && <Alert severity="error">Не вдалося завантажити документ</Alert>}
         {data && (
@@ -37,7 +37,7 @@ export const PurchaseDetailsPage = () => {
               Дата: {formatDate(data.orderDate)}
             </Typography>
             <Typography variant="body2">
-              Постачальник: {data.counterparty?.name ?? '—'}
+              Клієнт: {data.counterparty?.name ?? '—'}
             </Typography>
             <Typography variant="body2">
               Сума: {formatMoney(data.totalCents)} UAH

@@ -5,14 +5,24 @@ import type { CreateProductInput, Product, UpdateProductInput } from '../types/p
 import type { TireBrand, TireLoadIndex, TireSpeedIndex } from '../types/tire'
 import type { Unit } from '../types/unit'
 import type { AutoSubcategory } from '../types/autoSubcategory'
-import type { CreatePurchaseInput, Order } from '../types/order'
+import type { CreatePurchaseInput, CreateSaleInput, Order, UpdateOrderInput } from '../types/order'
+import type { StockItem } from '../types/stock'
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api'
   }),
-  tagTypes: ['Category', 'Product', 'Counterparty', 'Unit', 'AutoSubcategory', 'TireBrand', 'Order'],
+  tagTypes: [
+    'Category',
+    'Product',
+    'Counterparty',
+    'Unit',
+    'AutoSubcategory',
+    'TireBrand',
+    'Order',
+    'Stock'
+  ],
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
       query: () => '/categories',
@@ -274,7 +284,20 @@ export const api = createApi({
             ]
           : [{ type: 'Order', id: 'LIST' }]
     }),
-    getPurchaseById: builder.query<Order, string>({
+    getSales: builder.query<Order[], void>({
+      query: () => ({
+        url: '/orders',
+        params: { type: 'SALE' }
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((order) => ({ type: 'Order' as const, id: order.id })),
+              { type: 'Order', id: 'LIST' }
+            ]
+          : [{ type: 'Order', id: 'LIST' }]
+    }),
+    getOrderById: builder.query<Order, string>({
       query: (id) => `/orders/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Order', id }]
     }),
@@ -284,7 +307,40 @@ export const api = createApi({
         method: 'POST',
         body
       }),
-      invalidatesTags: [{ type: 'Order', id: 'LIST' }, { type: 'Counterparty', id: 'LIST' }]
+      invalidatesTags: [
+        { type: 'Order', id: 'LIST' },
+        { type: 'Counterparty', id: 'LIST' },
+        { type: 'Stock', id: 'LIST' }
+      ]
+    }),
+    createSale: builder.mutation<Order, CreateSaleInput>({
+      query: (body) => ({
+        url: '/orders',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [
+        { type: 'Order', id: 'LIST' },
+        { type: 'Counterparty', id: 'LIST' },
+        { type: 'Stock', id: 'LIST' }
+      ]
+    }),
+    updateOrder: builder.mutation<Order, UpdateOrderInput>({
+      query: ({ id, ...body }) => ({
+        url: `/orders/${id}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: (_result, _error, arg) => [
+        { type: 'Order', id: arg.id },
+        { type: 'Order', id: 'LIST' },
+        { type: 'Counterparty', id: 'LIST' },
+        { type: 'Stock', id: 'LIST' }
+      ]
+    }),
+    getStock: builder.query<StockItem[], void>({
+      query: () => '/stock',
+      providesTags: [{ type: 'Stock', id: 'LIST' }]
     })
   })
 })
@@ -311,6 +367,10 @@ export const {
   useDeleteCounterpartyMutation,
   useSetCounterpartyStatusMutation,
   useGetPurchasesQuery,
-  useGetPurchaseByIdQuery,
-  useCreatePurchaseMutation
+  useGetSalesQuery,
+  useGetOrderByIdQuery,
+  useCreatePurchaseMutation,
+  useCreateSaleMutation,
+  useUpdateOrderMutation,
+  useGetStockQuery
 } = api
