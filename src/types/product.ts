@@ -1,10 +1,12 @@
 import type { Category } from './category'
 import type { TireBrand, TireLoadIndex, TireModel, TireSpeedIndex } from './tire'
+import type { Unit } from './unit'
+import type { AutoSubcategory } from './autoSubcategory'
 
 export type Product = {
   id: string
   name: string
-  unit?: string | null
+  unit?: Unit | null
   category: Category
   tireDetails?: TireProduct | null
   autoDetails?: AutoProduct | null
@@ -12,7 +14,7 @@ export type Product = {
 
 export type CreateProductInput = {
   categoryId: string
-  unit?: string
+  unitId?: string
   tireSize?: string
   tireSpeedIndexId?: string
   tireLoadIndexId?: string
@@ -24,7 +26,7 @@ export type CreateProductInput = {
   tireModelName?: string
   autoBrand?: string
   autoModel?: string
-  autoSubcategory?: string
+  autoSubcategoryId?: string
 }
 
 export type UpdateProductInput = CreateProductInput & {
@@ -46,5 +48,5 @@ export type AutoProduct = {
   id: string
   brand: string
   model: string
-  subcategory: string
+  subcategory: AutoSubcategory
 }

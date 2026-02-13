@@ -3,13 +3,15 @@ import type { Category } from '../types/category'
 import type { Counterparty, CounterpartyInput, CounterpartyUpdateInput } from '../types/counterparty'
 import type { CreateProductInput, Product, UpdateProductInput } from '../types/product'
 import type { TireBrand, TireLoadIndex, TireSpeedIndex } from '../types/tire'
+import type { Unit } from '../types/unit'
+import type { AutoSubcategory } from '../types/autoSubcategory'
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api'
   }),
-  tagTypes: ['Category', 'Product', 'Counterparty'],
+  tagTypes: ['Category', 'Product', 'Counterparty', 'Unit', 'AutoSubcategory', 'TireBrand'],
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
       query: () => '/categories',
@@ -20,6 +22,14 @@ export const api = createApi({
               { type: 'Category', id: 'LIST' }
             ]
           : [{ type: 'Category', id: 'LIST' }]
+    }),
+    createCategory: builder.mutation<Category, { name: string }>({
+      query: (body) => ({
+        url: '/categories',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'Category', id: 'LIST' }]
     }),
     getProducts: builder.query<Product[], void>({
       query: () => '/products',
@@ -132,13 +142,72 @@ export const api = createApi({
       }
     }),
     getTireBrands: builder.query<TireBrand[], void>({
-      query: () => '/tire-brands'
+      query: () => '/tire-brands',
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((brand) => ({ type: 'TireBrand' as const, id: brand.id })),
+              { type: 'TireBrand', id: 'LIST' }
+            ]
+          : [{ type: 'TireBrand', id: 'LIST' }]
+    }),
+    createTireBrand: builder.mutation<TireBrand, { name: string }>({
+      query: (body) => ({
+        url: '/tire-brands',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'TireBrand', id: 'LIST' }]
+    }),
+    createTireModel: builder.mutation<{ id: string; name: string; brandId: string }, { name: string; brandId: string }>({
+      query: (body) => ({
+        url: '/tire-models',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'TireBrand', id: 'LIST' }]
     }),
     getTireSpeedIndices: builder.query<TireSpeedIndex[], void>({
       query: () => '/tire-indices/speed'
     }),
     getTireLoadIndices: builder.query<TireLoadIndex[], void>({
       query: () => '/tire-indices/load'
+    }),
+    getUnits: builder.query<Unit[], void>({
+      query: () => '/units',
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((unit) => ({ type: 'Unit' as const, id: unit.id })),
+              { type: 'Unit', id: 'LIST' }
+            ]
+          : [{ type: 'Unit', id: 'LIST' }]
+    }),
+    createUnit: builder.mutation<Unit, { name: string }>({
+      query: (body) => ({
+        url: '/units',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'Unit', id: 'LIST' }]
+    }),
+    getAutoSubcategories: builder.query<AutoSubcategory[], void>({
+      query: () => '/auto-subcategories',
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((item) => ({ type: 'AutoSubcategory' as const, id: item.id })),
+              { type: 'AutoSubcategory', id: 'LIST' }
+            ]
+          : [{ type: 'AutoSubcategory', id: 'LIST' }]
+    }),
+    createAutoSubcategory: builder.mutation<AutoSubcategory, { name: string }>({
+      query: (body) => ({
+        url: '/auto-subcategories',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'AutoSubcategory', id: 'LIST' }]
     }),
     getCounterparties: builder.query<
       Counterparty[],
@@ -196,13 +265,20 @@ export const api = createApi({
 
 export const {
   useGetCategoriesQuery,
+  useCreateCategoryMutation,
   useGetProductsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   useGetTireBrandsQuery,
+  useCreateTireBrandMutation,
+  useCreateTireModelMutation,
   useGetTireSpeedIndicesQuery,
   useGetTireLoadIndicesQuery,
+  useGetUnitsQuery,
+  useCreateUnitMutation,
+  useGetAutoSubcategoriesQuery,
+  useCreateAutoSubcategoryMutation,
   useGetCounterpartiesQuery,
   useCreateCounterpartyMutation,
   useUpdateCounterpartyMutation,
