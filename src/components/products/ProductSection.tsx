@@ -73,6 +73,7 @@ export const ProductSection = () => {
     useCreateProductMutation()
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation()
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation()
+  const [actionError, setActionError] = useState<string | null>(null)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
 
   const formik = useFormik({
@@ -231,10 +232,19 @@ export const ProductSection = () => {
 
   const handleDelete = async (productId: string) => {
     if (window.confirm('Видалити товар?')) {
-      await deleteProduct(productId).unwrap()
-      if (editingProductId === productId) {
-        formik.resetForm()
-        setEditingProductId(null)
+      setActionError(null)
+      try {
+        await deleteProduct(productId).unwrap()
+        if (editingProductId === productId) {
+          formik.resetForm()
+          setEditingProductId(null)
+        }
+      } catch (err: any) {
+        if (err?.status === 409) {
+          setActionError('Товар використовується у продажах/закупках. Видалення заборонено.')
+        } else {
+          setActionError('Не вдалося видалити товар.')
+        }
       }
     }
   }
@@ -528,6 +538,7 @@ export const ProductSection = () => {
         </Stack>
       </Form>
 
+      {actionError && <Alert severity="error">{actionError}</Alert>}
       {isLoading 
       ? 
       <CircularProgress size={28} /> 
@@ -536,9 +547,9 @@ export const ProductSection = () => {
         <TableHead>
           <TableRow>
             <TableCell>Деталі</TableCell>
+            <TableCell>Бренд</TableCell>
             <TableCell>Модель</TableCell>
             <TableCell>Категорія</TableCell>
-            <TableCell>Бренд</TableCell>
             <TableCell>Змінити</TableCell>
           </TableRow>
         </TableHead>
