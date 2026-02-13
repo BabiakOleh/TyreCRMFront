@@ -5,13 +5,14 @@ import type { CreateProductInput, Product, UpdateProductInput } from '../types/p
 import type { TireBrand, TireLoadIndex, TireSpeedIndex } from '../types/tire'
 import type { Unit } from '../types/unit'
 import type { AutoSubcategory } from '../types/autoSubcategory'
+import type { CreatePurchaseInput, Order } from '../types/order'
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api'
   }),
-  tagTypes: ['Category', 'Product', 'Counterparty', 'Unit', 'AutoSubcategory', 'TireBrand'],
+  tagTypes: ['Category', 'Product', 'Counterparty', 'Unit', 'AutoSubcategory', 'TireBrand', 'Order'],
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
       query: () => '/categories',
@@ -259,6 +260,31 @@ export const api = createApi({
         body: { isActive }
       }),
       invalidatesTags: [{ type: 'Counterparty', id: 'LIST' }]
+    }),
+    getPurchases: builder.query<Order[], void>({
+      query: () => ({
+        url: '/orders',
+        params: { type: 'PURCHASE' }
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((order) => ({ type: 'Order' as const, id: order.id })),
+              { type: 'Order', id: 'LIST' }
+            ]
+          : [{ type: 'Order', id: 'LIST' }]
+    }),
+    getPurchaseById: builder.query<Order, string>({
+      query: (id) => `/orders/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'Order', id }]
+    }),
+    createPurchase: builder.mutation<Order, CreatePurchaseInput>({
+      query: (body) => ({
+        url: '/orders',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'Order', id: 'LIST' }, { type: 'Counterparty', id: 'LIST' }]
     })
   })
 })
@@ -283,5 +309,8 @@ export const {
   useCreateCounterpartyMutation,
   useUpdateCounterpartyMutation,
   useDeleteCounterpartyMutation,
-  useSetCounterpartyStatusMutation
+  useSetCounterpartyStatusMutation,
+  useGetPurchasesQuery,
+  useGetPurchaseByIdQuery,
+  useCreatePurchaseMutation
 } = api

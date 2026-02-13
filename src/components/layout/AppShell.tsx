@@ -26,7 +26,10 @@ const pageTitles: Record<string, { title: string; subtitle?: string }> = {
 
 export const AppShell = () => {
   const location = useLocation()
-  const meta = pageTitles[location.pathname] ?? pageTitles['/products']
+  const meta =
+    location.pathname.startsWith('/purchases/')
+      ? { title: 'Документ закупки' }
+      : pageTitles[location.pathname] ?? pageTitles['/products']
 
   return (
     <Shell>

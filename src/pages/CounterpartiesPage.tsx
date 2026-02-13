@@ -156,6 +156,9 @@ export const CounterpartiesPage = () => {
   }
 
   const rows = useMemo(() => data ?? [], [data])
+  const isSupplier = type === 'SUPPLIER'
+  const formatMoney = (cents?: number) =>
+    typeof cents === 'number' ? `${(cents / 100).toFixed(2)} грн` : '—'
 
   return (
     <Content>
@@ -283,6 +286,7 @@ export const CounterpartiesPage = () => {
                 <TableCell>Назва</TableCell>
                 <TableCell>Телефон</TableCell>
                 <TableCell>Email</TableCell>
+                {isSupplier && <TableCell>Заборгованість</TableCell>}
                 <TableCell>Статус</TableCell>
                 <TableCell>Дії</TableCell>
               </TableRow>
@@ -293,6 +297,9 @@ export const CounterpartiesPage = () => {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.phone}</TableCell>
                   <TableCell>{item.email || '—'}</TableCell>
+                  {isSupplier && (
+                    <TableCell>{formatMoney(item.payableCents)}</TableCell>
+                  )}
                   <TableCell>
                     <Chip
                       size="small"

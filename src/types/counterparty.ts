@@ -10,6 +10,7 @@ export type Counterparty = {
   address?: string | null
   note?: string | null
   isActive: boolean
+  payableCents?: number
   createdAt: string
   updatedAt: string
 }

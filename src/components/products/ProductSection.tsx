@@ -193,8 +193,11 @@ export const ProductSection = () => {
           formik.resetForm()
           setEditingProductId(null)
         }
-      } catch (err: any) {
-        if (err?.status === 409) {
+      } catch (err: unknown) {
+        const status = typeof err === 'object' && err !== null && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined
+        if (status === 409) {
           setActionError('Товар використовується у продажах/закупках. Видалення заборонено.')
         } else {
           setActionError('Не вдалося видалити товар.')
