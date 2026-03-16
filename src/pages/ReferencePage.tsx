@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import { Content, Grid } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
+import { DictionarySection } from '../components/reference/DictionarySection'
 import {
   useCreateAutoSubcategoryMutation,
   useCreateCategoryMutation,
@@ -40,65 +41,6 @@ export const ReferencePage = () => {
   const [createTireBrand, tireBrandState] = useCreateTireBrandMutation()
   const [createTireModel, tireModelState] = useCreateTireModelMutation()
 
-  const categoryFormik = useFormik({
-    initialValues: { name: '' },
-    validate: (values) => {
-      const errors: { name?: string } = {}
-      if (!values.name.trim()) {
-        errors.name = 'Вкажи назву'
-      }
-      return errors
-    },
-    onSubmit: async (values, helpers) => {
-      await createCategory({ name: values.name.trim() }).unwrap()
-      helpers.resetForm()
-    }
-  })
-
-  const unitFormik = useFormik({
-    initialValues: { name: '' },
-    validate: (values) => {
-      const errors: { name?: string } = {}
-      if (!values.name.trim()) {
-        errors.name = 'Вкажи назву'
-      }
-      return errors
-    },
-    onSubmit: async (values, helpers) => {
-      await createUnit({ name: values.name.trim() }).unwrap()
-      helpers.resetForm()
-    }
-  })
-
-  const autoSubcategoryFormik = useFormik({
-    initialValues: { name: '' },
-    validate: (values) => {
-      const errors: { name?: string } = {}
-      if (!values.name.trim()) {
-        errors.name = 'Вкажи назву'
-      }
-      return errors
-    },
-    onSubmit: async (values, helpers) => {
-      await createAutoSubcategory({ name: values.name.trim() }).unwrap()
-      helpers.resetForm()
-    }
-  })
-
-  const tireBrandFormik = useFormik({
-    initialValues: { name: '' },
-    validate: (values) => {
-      const errors: { name?: string } = {}
-      if (!values.name.trim()) {
-        errors.name = 'Вкажи назву'
-      }
-      return errors
-    },
-    onSubmit: async (values, helpers) => {
-      await createTireBrand({ name: values.name.trim() }).unwrap()
-      helpers.resetForm()
-    }
-  })
 
   const tireModelFormik = useFormik({
     initialValues: { brandId: '', name: '' },
@@ -125,117 +67,37 @@ export const ReferencePage = () => {
     <Content>
       <Typography variant="h6">Довідники</Typography>
       <Grid>
-        <SectionCard>
-          <Typography variant="subtitle1">Категорії</Typography>
-          <FormRow onSubmit={categoryFormik.handleSubmit}>
-            <TextField
-              label="Назва"
-              name="name"
-              value={categoryFormik.values.name}
-              onChange={categoryFormik.handleChange}
-              onBlur={categoryFormik.handleBlur}
-              error={Boolean(categoryFormik.touched.name && categoryFormik.errors.name)}
-              helperText={categoryFormik.touched.name && categoryFormik.errors.name}
-            />
-            <Button type="submit" variant="contained" disabled={categoryState.isLoading}>
-              Додати
-            </Button>
-          </FormRow>
-          {categoryState.error && (
-            <Alert severity="error">Не вдалося додати категорію</Alert>
-          )}
-          <Stack spacing={0.5}>
-            {categories.map((category) => (
-              <Typography key={category.id}>{category.name}</Typography>
-            ))}
-          </Stack>
-        </SectionCard>
+        <DictionarySection
+          title="Категорії"
+          items={categories}
+          onCreate={(data) => createCategory(data).unwrap()}
+          isLoading={categoryState.isLoading}
+          error={categoryState.error}
+        />
 
-        <SectionCard>
-          <Typography variant="subtitle1">Одиниці виміру</Typography>
-          <FormRow onSubmit={unitFormik.handleSubmit}>
-            <TextField
-              label="Назва"
-              name="name"
-              value={unitFormik.values.name}
-              onChange={unitFormik.handleChange}
-              onBlur={unitFormik.handleBlur}
-              error={Boolean(unitFormik.touched.name && unitFormik.errors.name)}
-              helperText={unitFormik.touched.name && unitFormik.errors.name}
-            />
-            <Button type="submit" variant="contained" disabled={unitState.isLoading}>
-              Додати
-            </Button>
-          </FormRow>
-          {unitState.error && <Alert severity="error">Не вдалося додати одиницю</Alert>}
-          <Stack spacing={0.5}>
-            {units.map((unit) => (
-              <Typography key={unit.id}>{unit.name}</Typography>
-            ))}
-          </Stack>
-        </SectionCard>
+        <DictionarySection
+          title="Одиниці виміру"
+          items={units}
+          onCreate={(data) => createUnit(data).unwrap()}
+          isLoading={unitState.isLoading}
+          error={unitState.error}
+        />
 
-        <SectionCard>
-          <Typography variant="subtitle1">Підкатегорії автотоварів</Typography>
-          <FormRow onSubmit={autoSubcategoryFormik.handleSubmit}>
-            <TextField
-              label="Назва"
-              name="name"
-              value={autoSubcategoryFormik.values.name}
-              onChange={autoSubcategoryFormik.handleChange}
-              onBlur={autoSubcategoryFormik.handleBlur}
-              error={Boolean(
-                autoSubcategoryFormik.touched.name &&
-                  autoSubcategoryFormik.errors.name
-              )}
-              helperText={
-                autoSubcategoryFormik.touched.name &&
-                autoSubcategoryFormik.errors.name
-              }
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={autoSubcategoryState.isLoading}
-            >
-              Додати
-            </Button>
-          </FormRow>
-          {autoSubcategoryState.error && (
-            <Alert severity="error">Не вдалося додати підкатегорію</Alert>
-          )}
-          <Stack spacing={0.5}>
-            {autoSubcategories.map((subcategory) => (
-              <Typography key={subcategory.id}>{subcategory.name}</Typography>
-            ))}
-          </Stack>
-        </SectionCard>
+        <DictionarySection
+          title="Підкатегорії автотоварів"
+          items={autoSubcategories}
+          onCreate={(data) => createAutoSubcategory(data).unwrap()}
+          isLoading={autoSubcategoryState.isLoading}
+          error={autoSubcategoryState.error}
+        />
 
-        <SectionCard>
-          <Typography variant="subtitle1">Бренди шин</Typography>
-          <FormRow onSubmit={tireBrandFormik.handleSubmit}>
-            <TextField
-              label="Назва"
-              name="name"
-              value={tireBrandFormik.values.name}
-              onChange={tireBrandFormik.handleChange}
-              onBlur={tireBrandFormik.handleBlur}
-              error={Boolean(tireBrandFormik.touched.name && tireBrandFormik.errors.name)}
-              helperText={tireBrandFormik.touched.name && tireBrandFormik.errors.name}
-            />
-            <Button type="submit" variant="contained" disabled={tireBrandState.isLoading}>
-              Додати
-            </Button>
-          </FormRow>
-          {tireBrandState.error && (
-            <Alert severity="error">Не вдалося додати бренд</Alert>
-          )}
-          <Stack spacing={0.5}>
-            {tireBrands.map((brand) => (
-              <Typography key={brand.id}>{brand.name}</Typography>
-            ))}
-          </Stack>
-        </SectionCard>
+        <DictionarySection
+          title="Бренди шин"
+          items={tireBrands}
+          onCreate={(data) => createTireBrand(data).unwrap()}
+          isLoading={tireBrandState.isLoading}
+          error={tireBrandState.error}
+        />
 
         <SectionCard>
           <Typography variant="subtitle1">Моделі шин</Typography>

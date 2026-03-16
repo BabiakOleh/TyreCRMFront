@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Alert,
   Button,
-  CircularProgress,
   IconButton,
   MenuItem,
   Stack,
@@ -15,10 +14,9 @@ import {
   Typography
 } from '@mui/material'
 import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined'
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { useNavigate } from 'react-router-dom'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
+import { OrdersTable } from '../components/orders/OrdersTable'
 import {
   useCreatePurchaseMutation,
   useGetCounterpartiesQuery,
@@ -27,23 +25,13 @@ import {
   useGetPurchasesQuery,
   useUpdateOrderMutation
 } from '../store/api'
-
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('uk-UA')
-
-const formatMoney = (cents: number) => `${(cents / 100).toFixed(2)} грн`
-
-const parseMoneyToCents = (value: string) => {
-  const normalized = value.replace(',', '.').trim()
-  if (!normalized) return 0
-  const parsed = Number(normalized)
-  return Number.isNaN(parsed) ? 0 : Math.round(parsed * 100)
-}
+import { formatMoney, parseMoneyToCents } from '../utils/money'
+import { getHttpStatus } from '../utils/httpError'
+import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
 
 const CATEGORY_TIRE = 'Шини'
 
-type ItemRow = {
-  rowId: string
+type ItemRow = BaseItemRow & {
   kind: 'TIRE' | 'AUTO'
   tireDetailKey: string
   tireBrandId: string
@@ -51,12 +39,9 @@ type ItemRow = {
   autoSubcategoryId: string
   autoBrand: string
   autoModel: string
-  quantity: string
-  price: string
 }
 
 export const PurchasesPage = () => {
-  const navigate = useNavigate()
   const { data = [], isLoading, isError } = useGetPurchasesQuery()
   const { data: products = [] } = useGetProductsQuery()
   const { data: suppliers = [] } = useGetCounterpartiesQuery({
@@ -70,9 +55,9 @@ export const PurchasesPage = () => {
   const [supplierId, setSupplierId] = useState('')
   const [orderDate, setOrderDate] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [items, setItems] = useState<ItemRow[]>([
-    {
-      rowId: 'row-1',
+  const { items, setItems, addRow, removeRow, updateRow, totalCents, resetItems } =
+    useOrderItems<ItemRow>(() => ({
+      rowId: '',
       kind: 'TIRE',
       tireDetailKey: '',
       tireBrandId: '',
@@ -82,8 +67,7 @@ export const PurchasesPage = () => {
       autoModel: '',
       quantity: '1',
       price: ''
-    }
-  ])
+    }))
   const [formError, setFormError] = useState<string | null>(null)
   const [stockWarning, setStockWarning] = useState<string | null>(null)
   const { data: editingOrder } = useGetOrderByIdQuery(editingId ?? '', {
@@ -191,45 +175,6 @@ export const PurchasesPage = () => {
     return Array.from(map.entries()).map(([name]) => ({ name }))
   }
 
-  const totalCents = useMemo(
-    () =>
-      items.reduce((sum, item) => {
-        const qty = Number(item.quantity)
-        if (Number.isNaN(qty) || qty <= 0) {
-          return sum
-        }
-        return sum + parseMoneyToCents(item.price) * qty
-      }, 0),
-    [items]
-  )
-
-  const addRow = () => {
-    setItems((prev) => [
-      ...prev,
-      {
-        rowId: `row-${prev.length + 1}`,
-        kind: 'TIRE',
-        tireDetailKey: '',
-        tireBrandId: '',
-        tireModelId: '',
-        autoSubcategoryId: '',
-        autoBrand: '',
-        autoModel: '',
-        quantity: '1',
-        price: ''
-      }
-    ])
-  }
-
-  const removeRow = (rowId: string) => {
-    setItems((prev) => prev.filter((item) => item.rowId !== rowId))
-  }
-
-  const updateRow = (rowId: string, patch: Partial<ItemRow>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.rowId === rowId ? { ...item, ...patch } : item))
-    )
-  }
 
   const handleCreate = async () => {
     setFormError(null)
@@ -280,10 +225,7 @@ export const PurchasesPage = () => {
         items: preparedItems
       }).unwrap()
     } catch (err: unknown) {
-      const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? (err as { status?: number }).status
-          : undefined
+      const status = getHttpStatus(err)
       if (status === 409) {
         setStockWarning('Недостатньо залишку для продажу')
       }
@@ -293,20 +235,7 @@ export const PurchasesPage = () => {
     setSupplierId('')
     setOrderDate('')
     setEditingId(null)
-    setItems([
-      {
-        rowId: 'row-1',
-        kind: 'TIRE',
-        tireDetailKey: '',
-        tireBrandId: '',
-        tireModelId: '',
-        autoSubcategoryId: '',
-        autoBrand: '',
-        autoModel: '',
-        quantity: '1',
-        price: ''
-      }
-    ])
+    resetItems()
   }
 
   useEffect(() => {
@@ -388,7 +317,7 @@ export const PurchasesPage = () => {
               type="date"
               value={orderDate}
               onChange={(event) => setOrderDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              fullWidth
             />
           </Stack>
 
@@ -658,10 +587,7 @@ export const PurchasesPage = () => {
                       items: preparedItems
                     }).unwrap()
                   } catch (err: unknown) {
-                    const status =
-                      typeof err === 'object' && err !== null && 'status' in err
-                        ? (err as { status?: number }).status
-                        : undefined
+                    const status = getHttpStatus(err)
                     if (status === 409) {
                       setStockWarning('Недостатньо залишку для продажу')
                     }
@@ -689,20 +615,7 @@ export const PurchasesPage = () => {
                   setEditingId(null)
                   setSupplierId('')
                   setOrderDate('')
-                  setItems([
-                    {
-                      rowId: 'row-1',
-                      kind: 'TIRE',
-                      tireDetailKey: '',
-                      tireBrandId: '',
-                      tireModelId: '',
-                      autoSubcategoryId: '',
-                      autoBrand: '',
-                      autoModel: '',
-                      quantity: '1',
-                      price: ''
-                    }
-                  ])
+                  resetItems()
                 }}
               >
                 Скасувати
@@ -714,54 +627,14 @@ export const PurchasesPage = () => {
 
       <SectionCard>
         <Typography variant="h6">Закупки</Typography>
-        {isLoading && <CircularProgress size={28} />}
-        {isError && <Alert severity="error">Не вдалося завантажити закупки</Alert>}
-        {!isLoading && (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Дата</TableCell>
-                <TableCell>Номер документа</TableCell>
-                <TableCell>Постачальник</TableCell>
-                <TableCell>Сума</TableCell>
-                <TableCell>Валюта</TableCell>
-                <TableCell>Деталі</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell>{formatDate(order.orderDate)}</TableCell>
-                  <TableCell>
-                    {order.documentNumber ?? order.id.slice(0, 8).toUpperCase()}
-                  </TableCell>
-                  <TableCell>{order.counterparty?.name ?? '—'}</TableCell>
-                  <TableCell>{formatMoney(order.totalCents)}</TableCell>
-                  <TableCell>UAH</TableCell>
-                  <TableCell>
-                    <Button
-                      size="small"
-                      onClick={() => navigate(`/purchases/${order.id}`)}
-                    >
-                      Відкрити
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small" onClick={() => setEditingId(order.id)}>
-                      <EditOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {data.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7}>Немає даних</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        )}
+        <OrdersTable
+          orders={data}
+          isLoading={isLoading}
+          isError={isError}
+          basePath="/purchases"
+          counterpartyColumnLabel="Постачальник"
+          onEdit={setEditingId}
+        />
       </SectionCard>
     </Content>
   )
