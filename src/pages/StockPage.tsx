@@ -60,6 +60,7 @@ export const StockPage = () => {
             label="Категорія"
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value as 'ALL' | 'TIRE' | 'AUTO')}
+            fullWidth
           >
             <MenuItem value="ALL">Всі</MenuItem>
             <MenuItem value="TIRE">Шини</MenuItem>
