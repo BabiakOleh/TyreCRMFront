@@ -1,4 +1,4 @@
-import { MenuItem, Stack, TextField } from '@mui/material'
+import { Box, MenuItem, TextField } from '@mui/material'
 
 type Props = {
   counterpartyLabel: string
@@ -17,7 +17,13 @@ export const OrderFormHeader = ({
   onOrderDateChange,
   counterpartyOptions
 }: Props) => (
-  <Stack direction="row" spacing={2}>
+  <Box
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: '2fr 1fr',
+      gap: 2
+    }}
+  >
     <TextField
       select
       label={counterpartyLabel}
@@ -39,7 +45,8 @@ export const OrderFormHeader = ({
       slotProps={{
         inputLabel: { shrink: true }
       }}
+      sx={{ minWidth: 180 }}
       fullWidth
     />
-  </Stack>
+  </Box>
 )

@@ -5,6 +5,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -233,61 +234,68 @@ export const SalesPage = () => {
             counterpartyOptions={customers}
           />
 
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Товар</TableCell>
-                <TableCell>К-сть</TableCell>
-                <TableCell>Ціна (грн)</TableCell>
-                <TableCell>Сума</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item) => {
-                const qty = Number(item.quantity)
-                const rowTotal =
-                  item.productId && qty > 0 ? parseMoneyToCents(item.price) * qty : 0
-                return (
-                  <TableRow key={item.rowId}>
-                    <TableCell>
-                      <TextField
-                        select
-                        value={item.productId}
-                        onChange={(event) =>
-                          updateRow(item.rowId, { productId: event.target.value })
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Товар</TableCell>
+                  <TableCell>К-сть</TableCell>
+                  <TableCell>Ціна (грн)</TableCell>
+                  <TableCell>Сума</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => {
+                  const qty = Number(item.quantity)
+                  const rowTotal =
+                    item.productId && qty > 0 ? parseMoneyToCents(item.price) * qty : 0
+                  return (
+                    <TableRow
+                      key={item.rowId}
+                      sx={{
+                        '&:hover': { bgcolor: 'action.hover' }
+                      }}
+                    >
+                      <TableCell sx={{ py: 1.5 }}>
+                        <TextField
+                          select
+                          value={item.productId}
+                          onChange={(event) =>
+                            updateRow(item.rowId, { productId: event.target.value })
+                          }
+                          fullWidth
+                        >
+                          {allOptions.map((option) => (
+                            <MenuItem key={option.id} value={option.id}>
+                              {option.label} (залишок: {option.availableQty})
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </TableCell>
+                      <OrderItemQuantityPrice
+                        quantity={item.quantity}
+                        price={item.price}
+                        onQuantityChange={(value: string) =>
+                          updateRow(item.rowId, { quantity: value })
                         }
-                        fullWidth
-                      >
-                        {allOptions.map((option) => (
-                          <MenuItem key={option.id} value={option.id}>
-                            {option.label} (залишок: {option.availableQty})
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
-                    <OrderItemQuantityPrice
-                      quantity={item.quantity}
-                      price={item.price}
-                      onQuantityChange={(value: string) =>
-                        updateRow(item.rowId, { quantity: value })
-                      }
-                      onPriceChange={(value: string) =>
-                        updateRow(item.rowId, { price: value })
-                      }
-                    />
-                    <TableCell>{formatMoney(rowTotal)}</TableCell>
-                    <TableCell>
-                      <RemoveRowButton
-                        onRemove={() => removeRow(item.rowId)}
-                        disabled={items.length === 1}
+                        onPriceChange={(value: string) =>
+                          updateRow(item.rowId, { price: value })
+                        }
                       />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                      <TableCell sx={{ py: 1.5 }}>{formatMoney(rowTotal)}</TableCell>
+                      <TableCell sx={{ py: 1.5 }}>
+                        <RemoveRowButton
+                          onRemove={() => removeRow(item.rowId)}
+                          disabled={items.length === 1}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
           <OrderItemsFooter onAddRow={addRow} totalCents={totalCents} />
 

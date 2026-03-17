@@ -9,7 +9,7 @@ export const Content = styled.main`
   max-width: 100%;
   margin: 0;
   width: 100%;
-  padding: 32px 20px 64px;
+  padding: 40px 32px 64px;
   display: flex;
   flex-direction: column;
   gap: 24px;

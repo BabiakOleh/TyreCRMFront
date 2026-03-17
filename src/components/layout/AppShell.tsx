@@ -5,7 +5,7 @@ import { Sidebar } from '../navigation/Sidebar'
 
 const Shell = styled.div`
   display: grid;
-  grid-template-columns: 92px 1fr;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
   background: #f4f6fb;
 `

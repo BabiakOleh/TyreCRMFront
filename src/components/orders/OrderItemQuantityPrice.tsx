@@ -14,18 +14,20 @@ export const OrderItemQuantityPrice = ({
   onPriceChange
 }: Props) => (
   <>
-    <TableCell>
+    <TableCell sx={{ width: 70 }}>
       <TextField
         value={quantity}
         onChange={(event) => onQuantityChange(event.target.value)}
         inputMode="numeric"
+        size="small"
       />
     </TableCell>
-    <TableCell>
+    <TableCell sx={{ width: 110 }}>
       <TextField
         value={price}
         onChange={(event) => onPriceChange(event.target.value)}
         inputMode="decimal"
+        size="small"
       />
     </TableCell>
   </>

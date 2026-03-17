@@ -4,16 +4,31 @@ export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1d4ed8'
+      main: '#2563eb'
     },
     secondary: {
-      main: '#0f766e'
+      main: '#64748b'
     },
     background: {
-      default: '#f4f6fb'
+      default: '#f8fafc'
     }
   },
   shape: {
     borderRadius: 12
+  },
+  typography: {
+    fontFamily: '"Plus Jakarta Sans", sans-serif'
+  },
+  components: {
+    MuiTextField: {
+      defaultProps: {
+        size: 'small'
+      }
+    },
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true
+      }
+    }
   }
 })
