@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Alert,
   Button,
-  IconButton,
   MenuItem,
   Stack,
   Table,
@@ -13,10 +11,14 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
+import { OrderFormAlerts } from '../components/orders/OrderFormAlerts'
+import { OrderFormHeader } from '../components/orders/OrderFormHeader'
+import { OrderItemsFooter } from '../components/orders/OrderItemsFooter'
+import { OrderItemQuantityPrice } from '../components/orders/OrderItemQuantityPrice'
 import { OrdersTable } from '../components/orders/OrdersTable'
+import { RemoveRowButton } from '../components/orders/RemoveRowButton'
 import {
   useCreatePurchaseMutation,
   useGetCounterpartiesQuery,
@@ -298,28 +300,14 @@ export const PurchasesPage = () => {
       <SectionCard>
         <Typography variant="h6">Нова закупка</Typography>
         <Stack spacing={2}>
-          <Stack direction="row" spacing={2}>
-            <TextField
-              select
-              label="Постачальник"
-              value={supplierId}
-              onChange={(event) => setSupplierId(event.target.value)}
-              fullWidth
-            >
-              {activeSuppliers.map((supplier) => (
-                <MenuItem key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="Дата"
-              type="date"
-              value={orderDate}
-              onChange={(event) => setOrderDate(event.target.value)}
-              fullWidth
-            />
-          </Stack>
+          <OrderFormHeader
+            counterpartyLabel="Постачальник"
+            counterpartyId={supplierId}
+            onCounterpartyChange={setSupplierId}
+            orderDate={orderDate}
+            onOrderDateChange={setOrderDate}
+            counterpartyOptions={activeSuppliers}
+          />
 
           <Table size="small">
             <TableHead>
@@ -485,34 +473,22 @@ export const PurchasesPage = () => {
                         </TextField>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <TextField
-                        value={item.quantity}
-                        onChange={(event) =>
-                          updateRow(item.rowId, { quantity: event.target.value })
-                        }
-                        inputMode="numeric"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        value={item.price}
-                        onChange={(event) =>
-                          updateRow(item.rowId, { price: event.target.value })
-                        }
-                        inputMode="decimal"
-                      />
-                    </TableCell>
+                    <OrderItemQuantityPrice
+                      quantity={item.quantity}
+                      price={item.price}
+                      onQuantityChange={(value: string) =>
+                        updateRow(item.rowId, { quantity: value })
+                      }
+                      onPriceChange={(value: string) =>
+                        updateRow(item.rowId, { price: value })
+                      }
+                    />
                     <TableCell>{formatMoney(rowTotal)}</TableCell>
                     <TableCell>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => removeRow(item.rowId)}
+                      <RemoveRowButton
+                        onRemove={() => removeRow(item.rowId)}
                         disabled={items.length === 1}
-                      >
-                        <DeleteForeverOutlinedIcon fontSize="small" />
-                      </IconButton>
+                      />
                     </TableCell>
                   </TableRow>
                 )
@@ -520,16 +496,14 @@ export const PurchasesPage = () => {
             </TableBody>
           </Table>
 
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Button variant="outlined" onClick={addRow}>
-              Додати позицію
-            </Button>
-            <Typography variant="subtitle2">Разом: {formatMoney(totalCents)}</Typography>
-          </Stack>
+          <OrderItemsFooter onAddRow={addRow} totalCents={totalCents} />
 
-          {formError && <Alert severity="warning">{formError}</Alert>}
-          {stockWarning && <Alert severity="error">{stockWarning}</Alert>}
-          {createError && <Alert severity="error">Не вдалося створити закупку</Alert>}
+          <OrderFormAlerts
+            formError={formError}
+            stockWarning={stockWarning}
+            createError={createError}
+            createErrorMessage="Не вдалося створити закупку"
+          />
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
