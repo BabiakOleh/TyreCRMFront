@@ -28,13 +28,11 @@ import {
   useGetPurchasesQuery,
   useUpdateOrderMutation
 } from '../store/api'
-import {
-  ERR_NO_ITEMS,
-  handleOrderApiError,
-  prepareOrderItems
-} from '../utils/order'
+import { ERR_NO_ITEMS, handleOrderApiError, prepareOrderItems } from '../utils/order'
 import { formatMoney, parseMoneyToCents } from '../utils/money'
 import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
+import { TABLE_HEADERS } from '../constants/labels'
+import { ERROR_MESSAGES } from '../constants/messages'
 
 const CATEGORY_TIRE = 'Шини'
 
@@ -359,13 +357,13 @@ export const PurchasesPage = () => {
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell>Тип</TableCell>
-                  <TableCell>Деталі</TableCell>
-                  <TableCell>Бренд</TableCell>
-                  <TableCell>Модель</TableCell>
-                  <TableCell>К-сть</TableCell>
-                  <TableCell>Ціна (грн)</TableCell>
-                  <TableCell>Сума</TableCell>
+                  <TableCell>{TABLE_HEADERS.type}</TableCell>
+                  <TableCell>{TABLE_HEADERS.details}</TableCell>
+                  <TableCell>{TABLE_HEADERS.brand}</TableCell>
+                  <TableCell>{TABLE_HEADERS.model}</TableCell>
+                  <TableCell>{TABLE_HEADERS.quantity}</TableCell>
+                  <TableCell>{TABLE_HEADERS.price}</TableCell>
+                  <TableCell>{TABLE_HEADERS.amount}</TableCell>
                   <TableCell />
                 </TableRow>
               </TableHead>
@@ -562,7 +560,7 @@ export const PurchasesPage = () => {
             formError={formError}
             stockWarning={stockWarning}
             createError={createError}
-            createErrorMessage="Не вдалося створити закупку"
+            createErrorMessage={ERROR_MESSAGES.createPurchase}
           />
           <OrderFormActions
             onSubmit={handleSubmit}

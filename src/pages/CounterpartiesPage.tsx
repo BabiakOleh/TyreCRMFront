@@ -31,6 +31,7 @@ import {
   useUpdateCounterpartyMutation
 } from '../store/api'
 import type { Counterparty, CounterpartyType } from '../types/counterparty'
+import { FORM_LABELS } from '../constants/labels'
 
 const defaultValues = (type: CounterpartyType) => ({
   type,
@@ -165,13 +166,13 @@ export const CounterpartiesPage = () => {
       <SectionCard>
         <Typography variant="h6">Контрагенти</Typography>
         <Tabs value={type} onChange={onTabChange}>
-          <Tab label="Клієнти" value="CUSTOMER" />
-          <Tab label="Постачальники" value="SUPPLIER" />
+          <Tab label={FORM_LABELS.client + 'и'} value="CUSTOMER" />
+          <Tab label={FORM_LABELS.supplier + 'и'} value="SUPPLIER" />
         </Tabs>
 
         <Stack direction="row" spacing={2} alignItems="center">
           <TextField
-            label="Пошук"
+            label={FORM_LABELS.search}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Назва, телефон, ЄДРПОУ"
@@ -188,7 +189,7 @@ export const CounterpartiesPage = () => {
 
         <Stack direction="row" spacing={2}>
           <TextField
-            label="Назва"
+            label={FORM_LABELS.name}
             name="name"
             value={formik.values.name}
             onChange={formik.handleChange}
@@ -283,7 +284,7 @@ export const CounterpartiesPage = () => {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Назва</TableCell>
+                <TableCell>{FORM_LABELS.name}</TableCell>
                 <TableCell>Телефон</TableCell>
                 <TableCell>Email</TableCell>
                 {isSupplier && <TableCell>Заборгованість</TableCell>}

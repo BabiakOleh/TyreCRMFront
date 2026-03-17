@@ -35,6 +35,8 @@ import {
 } from '../utils/order'
 import { formatMoney, parseMoneyToCents } from '../utils/money'
 import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
+import { TABLE_HEADERS } from '../constants/labels'
+import { ERROR_MESSAGES } from '../constants/messages'
 
 type ItemRow = BaseItemRow & {
   productId: string
@@ -243,10 +245,10 @@ export const SalesPage = () => {
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell>Товар</TableCell>
-                  <TableCell>К-сть</TableCell>
-                  <TableCell>Ціна (грн)</TableCell>
-                  <TableCell>Сума</TableCell>
+                  <TableCell>{TABLE_HEADERS.product}</TableCell>
+                  <TableCell>{TABLE_HEADERS.quantity}</TableCell>
+                  <TableCell>{TABLE_HEADERS.price}</TableCell>
+                  <TableCell>{TABLE_HEADERS.amount}</TableCell>
                   <TableCell />
                 </TableRow>
               </TableHead>
@@ -308,7 +310,7 @@ export const SalesPage = () => {
             formError={formError}
             stockWarning={stockWarning}
             createError={createError}
-            createErrorMessage="Не вдалося створити продаж"
+            createErrorMessage={ERROR_MESSAGES.createSale}
           />
           <OrderFormActions
             onSubmit={handleSubmit}

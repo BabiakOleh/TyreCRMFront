@@ -2,6 +2,8 @@ import { useFormik } from 'formik'
 import styled from 'styled-components'
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material'
 import { SectionCard } from '../shared/SectionCard'
+import { FORM_LABELS } from '../../constants/labels'
+import { ERROR_MESSAGES } from '../../constants/messages'
 
 const FormRow = styled.form`
   display: grid;
@@ -45,7 +47,7 @@ export const DictionarySection = ({
       <Typography variant="subtitle1">{title}</Typography>
       <FormRow onSubmit={formik.handleSubmit}>
         <TextField
-          label="Назва"
+          label={FORM_LABELS.name}
           name="name"
           value={formik.values.name}
           onChange={formik.handleChange}
@@ -57,7 +59,7 @@ export const DictionarySection = ({
           Додати
         </Button>
       </FormRow>
-      {hasError && <Alert severity="error">Не вдалося додати запис</Alert>}
+      {hasError && <Alert severity="error">{ERROR_MESSAGES.addDictionaryItem}</Alert>}
       <Stack spacing={0.5}>
         {items.map((item) => (
           <Typography key={item.id}>{item.name}</Typography>

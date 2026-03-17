@@ -1,16 +1,11 @@
 import { useFormik } from 'formik'
 import styled from 'styled-components'
-import {
-  Alert,
-  Button,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Alert, Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Content, Grid } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
 import { DictionarySection } from '../components/reference/DictionarySection'
+import { FORM_LABELS } from '../constants/labels'
+import { ERROR_MESSAGES } from '../constants/messages'
 import {
   useCreateAutoSubcategoryMutation,
   useCreateCategoryMutation,
@@ -104,7 +99,7 @@ export const ReferencePage = () => {
           <FormRow onSubmit={tireModelFormik.handleSubmit}>
             <TextField
               select
-              label="Бренд"
+              label={FORM_LABELS.brand}
               name="brandId"
               value={tireModelFormik.values.brandId}
               onChange={tireModelFormik.handleChange}
@@ -119,7 +114,7 @@ export const ReferencePage = () => {
               ))}
             </TextField>
             <TextField
-              label="Модель"
+              label={FORM_LABELS.model}
               name="name"
               value={tireModelFormik.values.name}
               onChange={tireModelFormik.handleChange}
@@ -132,7 +127,7 @@ export const ReferencePage = () => {
             </Button>
           </FormRow>
           {tireModelState.error && (
-            <Alert severity="error">Не вдалося додати модель</Alert>
+            <Alert severity="error">{ERROR_MESSAGES.addTireModel}</Alert>
           )}
           <Stack spacing={0.5}>
             {tireBrands.map((brand) => (

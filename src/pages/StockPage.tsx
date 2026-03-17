@@ -12,6 +12,8 @@ import {
   TextField,
   Typography
 } from '@mui/material'
+import { TABLE_HEADERS, FORM_LABELS } from '../constants/labels'
+import { ERROR_MESSAGES } from '../constants/messages'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
 import { useGetStockQuery } from '../store/api'
@@ -57,7 +59,7 @@ export const StockPage = () => {
         <Stack direction="row" spacing={2}>
           <TextField
             select
-            label="Категорія"
+            label={FORM_LABELS.category}
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value as 'ALL' | 'TIRE' | 'AUTO')}
             fullWidth
@@ -76,15 +78,15 @@ export const StockPage = () => {
         </Stack>
 
         {isLoading && <CircularProgress size={28} />}
-        {isError && <Alert severity="error">Не вдалося завантажити залишки</Alert>}
+        {isError && <Alert severity="error">{ERROR_MESSAGES.loadStock}</Alert>}
 
         {!isLoading && (
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Товар</TableCell>
-                <TableCell>Категорія</TableCell>
-                <TableCell>Деталі</TableCell>
+                <TableCell>{TABLE_HEADERS.product}</TableCell>
+                <TableCell>{FORM_LABELS.category}</TableCell>
+                <TableCell>{TABLE_HEADERS.details}</TableCell>
                 <TableCell>Залишок</TableCell>
               </TableRow>
             </TableHead>

@@ -14,6 +14,8 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useNavigate } from 'react-router-dom'
 import type { Order } from '../../types/order'
 import { formatDate, formatMoney } from '../../utils/money'
+import { TABLE_HEADERS } from '../../constants/labels'
+import { ERROR_MESSAGES } from '../../constants/messages'
 
 type Props = {
   orders: Order[]
@@ -39,7 +41,7 @@ export const OrdersTable = ({
       {isLoading && <CircularProgress size={28} />}
       {isError && (
         <Alert severity="error">
-          Не вдалося завантажити {basePath === '/purchases' ? 'закупки' : 'продажі'}
+          {ERROR_MESSAGES.loadOrders}
         </Alert>
       )}
       {!isLoading && (
@@ -47,12 +49,12 @@ export const OrdersTable = ({
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Дата</TableCell>
-                <TableCell>Номер документа</TableCell>
+                <TableCell>{TABLE_HEADERS.date}</TableCell>
+                <TableCell>{TABLE_HEADERS.documentNumber}</TableCell>
                 <TableCell>{counterpartyColumnLabel}</TableCell>
-                <TableCell>Сума</TableCell>
-                <TableCell>Валюта</TableCell>
-                <TableCell>Деталі</TableCell>
+                <TableCell>{TABLE_HEADERS.amount}</TableCell>
+                <TableCell>{TABLE_HEADERS.currency}</TableCell>
+                <TableCell>{TABLE_HEADERS.details}</TableCell>
                 <TableCell />
               </TableRow>
             </TableHead>
