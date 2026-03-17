@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Button,
   MenuItem,
   Stack,
   Table,
@@ -13,6 +12,7 @@ import {
 } from '@mui/material'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
+import { OrderFormActions } from '../components/orders/OrderFormActions'
 import { OrderFormAlerts } from '../components/orders/OrderFormAlerts'
 import { OrderFormHeader } from '../components/orders/OrderFormHeader'
 import { OrderItemsFooter } from '../components/orders/OrderItemsFooter'
@@ -27,8 +27,12 @@ import {
   useGetPurchasesQuery,
   useUpdateOrderMutation
 } from '../store/api'
+import {
+  ERR_NO_ITEMS,
+  handleOrderApiError,
+  prepareOrderItems
+} from '../utils/order'
 import { formatMoney, parseMoneyToCents } from '../utils/money'
-import { getHttpStatus } from '../utils/httpError'
 import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
 
 const CATEGORY_TIRE = 'Шини'
@@ -177,6 +181,32 @@ export const PurchasesPage = () => {
     return Array.from(map.entries()).map(([name]) => ({ name }))
   }
 
+  const mapItemToPrepared = useCallback(
+    (item: ItemRow) => {
+      const productId =
+        item.kind === 'TIRE'
+          ? tireProducts.find(
+              (product) =>
+                getTireDetailKey(product.tireDetails ?? undefined) ===
+                  item.tireDetailKey &&
+                product.tireDetails?.brand?.id === item.tireBrandId &&
+                product.tireDetails?.model?.id === item.tireModelId
+            )?.id
+          : autoProducts.find(
+              (product) =>
+                product.autoDetails?.subcategory?.id === item.autoSubcategoryId &&
+                product.autoDetails?.brand === item.autoBrand &&
+                product.autoDetails?.model === item.autoModel
+            )?.id
+
+      return {
+        productId,
+        quantity: Number(item.quantity),
+        priceCents: parseMoneyToCents(item.price)
+      }
+    },
+    [tireProducts, autoProducts]
+  )
 
   const handleCreate = async () => {
     setFormError(null)
@@ -185,37 +215,9 @@ export const PurchasesPage = () => {
       setFormError('Оберіть постачальника')
       return
     }
-    const preparedItems = items
-      .map((item) => {
-        const productId =
-          item.kind === 'TIRE'
-            ? tireProducts.find(
-                (product) =>
-                  getTireDetailKey(product.tireDetails ?? undefined) ===
-                    item.tireDetailKey &&
-                  product.tireDetails?.brand?.id === item.tireBrandId &&
-                  product.tireDetails?.model?.id === item.tireModelId
-              )?.id
-            : autoProducts.find(
-                (product) =>
-                  product.autoDetails?.subcategory?.id === item.autoSubcategoryId &&
-                  product.autoDetails?.brand === item.autoBrand &&
-                  product.autoDetails?.model === item.autoModel
-              )?.id
-
-        return {
-          productId,
-          quantity: Number(item.quantity),
-          priceCents: parseMoneyToCents(item.price)
-        }
-      })
-      .filter(
-        (item): item is { productId: string; quantity: number; priceCents: number } =>
-          Boolean(item.productId) && item.quantity > 0
-      )
-
+    const preparedItems = prepareOrderItems(items, mapItemToPrepared)
     if (preparedItems.length === 0) {
-      setFormError('Додайте хоча б один товар')
+      setFormError(ERR_NO_ITEMS)
       return
     }
 
@@ -227,16 +229,56 @@ export const PurchasesPage = () => {
         items: preparedItems
       }).unwrap()
     } catch (err: unknown) {
-      const status = getHttpStatus(err)
-      if (status === 409) {
-        setStockWarning('Недостатньо залишку для продажу')
-      }
+      handleOrderApiError(err, setStockWarning)
       return
     }
 
     setSupplierId('')
     setOrderDate('')
     setEditingId(null)
+    resetItems()
+  }
+
+  const handleUpdate = async () => {
+    if (!editingId) return
+    setFormError(null)
+    if (!supplierId) {
+      setFormError('Оберіть постачальника')
+      return
+    }
+    const preparedItems = prepareOrderItems(items, mapItemToPrepared)
+    if (preparedItems.length === 0) {
+      setFormError(ERR_NO_ITEMS)
+      return
+    }
+
+    try {
+      await updateOrder({
+        id: editingId,
+        type: 'PURCHASE',
+        counterpartyId: supplierId,
+        orderDate: orderDate || undefined,
+        items: preparedItems
+      }).unwrap()
+    } catch (err: unknown) {
+      handleOrderApiError(err, setStockWarning)
+      return
+    }
+    setEditingId(null)
+  }
+
+  const handleSubmit = async () => {
+    if (editingId) {
+      await handleUpdate()
+    } else {
+      await handleCreate()
+    }
+  }
+
+  const handleCancel = () => {
+    setEditingId(null)
+    setSupplierId('')
+    setOrderDate('')
     resetItems()
   }
 
@@ -357,6 +399,7 @@ export const PurchasesPage = () => {
                             autoModel: ''
                           })
                         }
+                        fullWidth
                       >
                         <MenuItem value="TIRE">Шини</MenuItem>
                         <MenuItem value="AUTO">Автотовари</MenuItem>
@@ -374,6 +417,7 @@ export const PurchasesPage = () => {
                               tireModelId: ''
                             })
                           }
+                          fullWidth
                         >
                           {tireDetailOptions.map((detail) => (
                             <MenuItem key={detail.key} value={detail.key}>
@@ -392,6 +436,7 @@ export const PurchasesPage = () => {
                               autoModel: ''
                             })
                           }
+                          fullWidth
                         >
                           {autoSubcategoryOptions.map((subcategory) => (
                             <MenuItem key={subcategory.id} value={subcategory.id}>
@@ -412,6 +457,7 @@ export const PurchasesPage = () => {
                               tireModelId: ''
                             })
                           }
+                          fullWidth
                           disabled={!item.tireDetailKey}
                         >
                           {tireBrands.map((brand) => (
@@ -430,6 +476,7 @@ export const PurchasesPage = () => {
                               autoModel: ''
                             })
                           }
+                          fullWidth
                           disabled={!item.autoSubcategoryId}
                         >
                           {autoBrands.map((brand) => (
@@ -448,6 +495,7 @@ export const PurchasesPage = () => {
                           onChange={(event) =>
                             updateRow(item.rowId, { tireModelId: event.target.value })
                           }
+                          fullWidth
                           disabled={!item.tireBrandId}
                         >
                           {tireModels.map((model) => (
@@ -463,6 +511,7 @@ export const PurchasesPage = () => {
                           onChange={(event) =>
                             updateRow(item.rowId, { autoModel: event.target.value })
                           }
+                          fullWidth
                           disabled={!item.autoBrand}
                         >
                           {autoModels.map((model) => (
@@ -504,98 +553,13 @@ export const PurchasesPage = () => {
             createError={createError}
             createErrorMessage="Не вдалося створити закупку"
           />
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              onClick={async () => {
-                if (editingId) {
-                  setFormError(null)
-                  if (!supplierId) {
-                    setFormError('Оберіть постачальника')
-                    return
-                  }
-                  const preparedItems = items
-                    .map((item) => {
-                      const productId =
-                        item.kind === 'TIRE'
-                          ? tireProducts.find(
-                              (product) =>
-                                getTireDetailKey(product.tireDetails ?? undefined) ===
-                                  item.tireDetailKey &&
-                                product.tireDetails?.brand?.id === item.tireBrandId &&
-                                product.tireDetails?.model?.id === item.tireModelId
-                            )?.id
-                          : autoProducts.find(
-                              (product) =>
-                                product.autoDetails?.subcategory?.id ===
-                                  item.autoSubcategoryId &&
-                                product.autoDetails?.brand === item.autoBrand &&
-                                product.autoDetails?.model === item.autoModel
-                            )?.id
-
-                      return {
-                        productId,
-                        quantity: Number(item.quantity),
-                        priceCents: parseMoneyToCents(item.price)
-                      }
-                    })
-                    .filter(
-                      (item): item is {
-                        productId: string
-                        quantity: number
-                        priceCents: number
-                      } => Boolean(item.productId) && item.quantity > 0
-                    )
-
-                  if (preparedItems.length === 0) {
-                    setFormError('Додайте хоча б один товар')
-                    return
-                  }
-
-                  try {
-                    await updateOrder({
-                      id: editingId,
-                      type: 'PURCHASE',
-                      counterpartyId: supplierId,
-                      orderDate: orderDate || undefined,
-                      items: preparedItems
-                    }).unwrap()
-                  } catch (err: unknown) {
-                    const status = getHttpStatus(err)
-                    if (status === 409) {
-                      setStockWarning('Недостатньо залишку для продажу')
-                    }
-                    return
-                  }
-                  setEditingId(null)
-                } else {
-                  await handleCreate()
-                }
-              }}
-              disabled={isCreating || isUpdating}
-            >
-              {editingId
-                ? isUpdating
-                  ? 'Оновлюю...'
-                  : 'Зберегти зміни'
-                : isCreating
-                  ? 'Зберігаю...'
-                  : 'Створити документ'}
-            </Button>
-            {editingId && (
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setEditingId(null)
-                  setSupplierId('')
-                  setOrderDate('')
-                  resetItems()
-                }}
-              >
-                Скасувати
-              </Button>
-            )}
-          </Stack>
+          <OrderFormActions
+            onSubmit={handleSubmit}
+            onCancel={editingId ? handleCancel : undefined}
+            isEditing={Boolean(editingId)}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
+          />
         </Stack>
       </SectionCard>
 

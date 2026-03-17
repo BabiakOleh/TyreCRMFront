@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Button,
   MenuItem,
   Stack,
   Table,
@@ -13,6 +12,7 @@ import {
 } from '@mui/material'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
+import { OrderFormActions } from '../components/orders/OrderFormActions'
 import { OrderFormAlerts } from '../components/orders/OrderFormAlerts'
 import { OrderFormHeader } from '../components/orders/OrderFormHeader'
 import { OrderItemsFooter } from '../components/orders/OrderItemsFooter'
@@ -27,8 +27,12 @@ import {
   useGetStockQuery,
   useUpdateOrderMutation
 } from '../store/api'
+import {
+  ERR_NO_ITEMS,
+  handleOrderApiError,
+  prepareOrderItems
+} from '../utils/order'
 import { formatMoney, parseMoneyToCents } from '../utils/money'
-import { getHttpStatus } from '../utils/httpError'
 import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
 
 type ItemRow = BaseItemRow & {
@@ -116,6 +120,12 @@ export const SalesPage = () => {
   }, [inStockOptions, items, stockMap])
 
 
+  const mapItemToPrepared = (item: ItemRow) => ({
+    productId: item.productId || undefined,
+    quantity: Number(item.quantity),
+    priceCents: parseMoneyToCents(item.price)
+  })
+
   const handleCreate = async () => {
     setFormError(null)
     setStockWarning(null)
@@ -123,19 +133,9 @@ export const SalesPage = () => {
       setFormError('Оберіть клієнта')
       return
     }
-    const preparedItems = items
-      .map((item) => ({
-        productId: item.productId || undefined,
-        quantity: Number(item.quantity),
-        priceCents: parseMoneyToCents(item.price)
-      }))
-      .filter(
-        (item): item is { productId: string; quantity: number; priceCents: number } =>
-          Boolean(item.productId) && item.quantity > 0
-      )
-
+    const preparedItems = prepareOrderItems(items, mapItemToPrepared)
     if (preparedItems.length === 0) {
-      setFormError('Додайте хоча б один товар')
+      setFormError(ERR_NO_ITEMS)
       return
     }
 
@@ -147,16 +147,56 @@ export const SalesPage = () => {
         items: preparedItems
       }).unwrap()
     } catch (err: unknown) {
-      const status = getHttpStatus(err)
-      if (status === 409) {
-        setStockWarning('Недостатньо залишку для продажу')
-      }
+      handleOrderApiError(err, setStockWarning)
       return
     }
 
     setCustomerId('')
     setOrderDate('')
     setEditingId(null)
+    resetItems()
+  }
+
+  const handleUpdate = async () => {
+    if (!editingId) return
+    setFormError(null)
+    if (!customerId) {
+      setFormError('Оберіть клієнта')
+      return
+    }
+    const preparedItems = prepareOrderItems(items, mapItemToPrepared)
+    if (preparedItems.length === 0) {
+      setFormError(ERR_NO_ITEMS)
+      return
+    }
+
+    try {
+      await updateOrder({
+        id: editingId,
+        type: 'SALE',
+        counterpartyId: customerId,
+        orderDate: orderDate || undefined,
+        items: preparedItems
+      }).unwrap()
+    } catch (err: unknown) {
+      handleOrderApiError(err, setStockWarning)
+      return
+    }
+    setEditingId(null)
+  }
+
+  const handleSubmit = async () => {
+    if (editingId) {
+      await handleUpdate()
+    } else {
+      await handleCreate()
+    }
+  }
+
+  const handleCancel = () => {
+    setEditingId(null)
+    setCustomerId('')
+    setOrderDate('')
     resetItems()
   }
 
@@ -257,79 +297,13 @@ export const SalesPage = () => {
             createError={createError}
             createErrorMessage="Не вдалося створити продаж"
           />
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              onClick={async () => {
-                if (editingId) {
-                  setFormError(null)
-                  if (!customerId) {
-                    setFormError('Оберіть клієнта')
-                    return
-                  }
-                  const preparedItems = items
-                    .map((item) => ({
-                      productId: item.productId || undefined,
-                      quantity: Number(item.quantity),
-                      priceCents: parseMoneyToCents(item.price)
-                    }))
-                    .filter(
-                      (item): item is {
-                        productId: string
-                        quantity: number
-                        priceCents: number
-                      } => Boolean(item.productId) && item.quantity > 0
-                    )
-
-                  if (preparedItems.length === 0) {
-                    setFormError('Додайте хоча б один товар')
-                    return
-                  }
-
-                  try {
-                    await updateOrder({
-                      id: editingId,
-                      type: 'SALE',
-                      counterpartyId: customerId,
-                      orderDate: orderDate || undefined,
-                      items: preparedItems
-                    }).unwrap()
-                  } catch (err: unknown) {
-                    const status = getHttpStatus(err)
-                    if (status === 409) {
-                      setStockWarning('Недостатньо залишку для продажу')
-                    }
-                    return
-                  }
-                  setEditingId(null)
-                } else {
-                  await handleCreate()
-                }
-              }}
-              disabled={isCreating || isUpdating}
-            >
-              {editingId
-                ? isUpdating
-                  ? 'Оновлюю...'
-                  : 'Зберегти зміни'
-                : isCreating
-                  ? 'Зберігаю...'
-                  : 'Створити документ'}
-            </Button>
-            {editingId && (
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setEditingId(null)
-                  setCustomerId('')
-                  setOrderDate('')
-                  resetItems()
-                }}
-              >
-                Скасувати
-              </Button>
-            )}
-          </Stack>
+          <OrderFormActions
+            onSubmit={handleSubmit}
+            onCancel={editingId ? handleCancel : undefined}
+            isEditing={Boolean(editingId)}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
+          />
         </Stack>
       </SectionCard>
 

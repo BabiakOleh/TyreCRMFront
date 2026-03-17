@@ -1,4 +1,5 @@
 export { OrderDetailsPage } from './OrderDetailsPage'
+export { OrderFormActions } from './OrderFormActions'
 export { OrderFormAlerts } from './OrderFormAlerts'
 export { OrderFormHeader } from './OrderFormHeader'
 export { OrderItemQuantityPrice } from './OrderItemQuantityPrice'

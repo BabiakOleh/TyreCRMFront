@@ -36,6 +36,9 @@ export const OrderFormHeader = ({
       type="date"
       value={orderDate}
       onChange={(event) => onOrderDateChange(event.target.value)}
+      slotProps={{
+        inputLabel: { shrink: true }
+      }}
       fullWidth
     />
   </Stack>
