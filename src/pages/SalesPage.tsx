@@ -121,11 +121,16 @@ export const SalesPage = () => {
   }, [inStockOptions, items, stockMap])
 
 
-  const mapItemToPrepared = (item: ItemRow) => ({
-    productId: item.productId || undefined,
-    quantity: Number(item.quantity),
-    priceCents: parseMoneyToCents(item.price)
-  })
+  const mapItemToPrepared = (item: ItemRow) => {
+    const quantity = Math.max(0, Number(item.quantity) || 0)
+    const priceCents = Math.max(0, parseMoneyToCents(item.price))
+
+    return {
+      productId: item.productId || undefined,
+      quantity,
+      priceCents
+    }
+  }
 
   const handleCreate = async () => {
     setFormError(null)

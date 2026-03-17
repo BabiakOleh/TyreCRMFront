@@ -12,23 +12,63 @@ export const OrderItemQuantityPrice = ({
   price,
   onQuantityChange,
   onPriceChange
-}: Props) => (
-  <>
-    <TableCell sx={{ width: 70 }}>
-      <TextField
-        value={quantity}
-        onChange={(event) => onQuantityChange(event.target.value)}
-        inputMode="numeric"
-        size="small"
-      />
-    </TableCell>
-    <TableCell sx={{ width: 110 }}>
-      <TextField
-        value={price}
-        onChange={(event) => onPriceChange(event.target.value)}
-        inputMode="decimal"
-        size="small"
-      />
-    </TableCell>
-  </>
-)
+}: Props) => {
+  const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value.trim().replace(',', '.')
+    if (raw === '') {
+      onQuantityChange('')
+      return
+    }
+
+    const num = Number(raw)
+    if (Number.isNaN(num)) {
+      return
+    }
+
+    if (num <= 0) {
+      return
+    }
+
+    onQuantityChange(raw)
+  }
+
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value.trim().replace(',', '.')
+    if (raw === '') {
+      onPriceChange('')
+      return
+    }
+
+    const num = Number(raw)
+    if (Number.isNaN(num)) {
+      return
+    }
+
+    if (num < 0) {
+      return
+    }
+
+    onPriceChange(raw)
+  }
+
+  return (
+    <>
+      <TableCell sx={{ width: 70 }}>
+        <TextField
+          value={quantity}
+          onChange={handleQuantityChange}
+          inputMode="numeric"
+          size="small"
+        />
+      </TableCell>
+      <TableCell sx={{ width: 110 }}>
+        <TextField
+          value={price}
+          onChange={handlePriceChange}
+          inputMode="decimal"
+          size="small"
+        />
+      </TableCell>
+    </>
+  )
+}

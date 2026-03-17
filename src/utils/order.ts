@@ -21,7 +21,7 @@ export function prepareOrderItems<T>(
     .map(map)
     .filter(
       (item): item is OrderItemInput =>
-        Boolean(item.productId) && item.quantity > 0
+        Boolean(item.productId) && item.quantity > 0 && item.priceCents >= 0
     )
 }
 
