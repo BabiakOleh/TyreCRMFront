@@ -283,14 +283,14 @@ export const SalesPage = () => {
           />
 
           <TableContainer>
-            <Table size="small" stickyHeader>
+            <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>{TABLE_HEADERS.product}</TableCell>
-                  <TableCell>{TABLE_HEADERS.quantity}</TableCell>
-                  <TableCell>{TABLE_HEADERS.price}</TableCell>
-                  <TableCell>{TABLE_HEADERS.amount}</TableCell>
-                  <TableCell />
+                  <TableCell sx={{ width: '46%' }}>{TABLE_HEADERS.product}</TableCell>
+                  <TableCell sx={{ width: '10%' }}>{TABLE_HEADERS.quantity}</TableCell>
+                  <TableCell sx={{ width: '19%' }}>{TABLE_HEADERS.price}</TableCell>
+                  <TableCell sx={{ width: '15%' }}>{TABLE_HEADERS.amount}</TableCell>
+                  <TableCell sx={{ width: '10%' }} />
                 </TableRow>
               </TableHead>
               <TableBody>

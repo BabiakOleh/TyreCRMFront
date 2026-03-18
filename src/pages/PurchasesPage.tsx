@@ -354,17 +354,17 @@ export const PurchasesPage = () => {
           />
 
           <TableContainer>
-            <Table size="small" stickyHeader>
+            <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>{TABLE_HEADERS.type}</TableCell>
-                  <TableCell>{TABLE_HEADERS.details}</TableCell>
-                  <TableCell>{TABLE_HEADERS.brand}</TableCell>
-                  <TableCell>{TABLE_HEADERS.model}</TableCell>
-                  <TableCell>{TABLE_HEADERS.quantity}</TableCell>
-                  <TableCell>{TABLE_HEADERS.price}</TableCell>
-                  <TableCell>{TABLE_HEADERS.amount}</TableCell>
-                  <TableCell />
+                  <TableCell sx={{ width: '11%' }}>{TABLE_HEADERS.type}</TableCell>
+                  <TableCell sx={{ width: '17%' }}>{TABLE_HEADERS.details}</TableCell>
+                  <TableCell sx={{ width: '17%' }}>{TABLE_HEADERS.brand}</TableCell>
+                  <TableCell sx={{ width: '17%' }}>{TABLE_HEADERS.model}</TableCell>
+                  <TableCell sx={{ width: '8%' }}>{TABLE_HEADERS.quantity}</TableCell>
+                  <TableCell sx={{ width: '14%' }}>{TABLE_HEADERS.price}</TableCell>
+                  <TableCell sx={{ width: '8%' }}>{TABLE_HEADERS.amount}</TableCell>
+                  <TableCell sx={{ width: '8%' }} />
                 </TableRow>
               </TableHead>
               <TableBody>

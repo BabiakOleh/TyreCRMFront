@@ -3,6 +3,7 @@ import {
   Alert,
   CircularProgress,
   MenuItem,
+  Switch,
   Stack,
   Table,
   TableBody,
@@ -38,6 +39,7 @@ export const StockPage = () => {
   const { data = [], isLoading, isError } = useGetStockQuery()
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'TIRE' | 'AUTO'>('ALL')
   const [search, setSearch] = useState('')
+  const [showZeroStock, setShowZeroStock] = useState(false)
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -45,18 +47,21 @@ export const StockPage = () => {
       const isTire = item.product.category?.name === CATEGORY_TIRE
       if (categoryFilter === 'TIRE' && !isTire) return false
       if (categoryFilter === 'AUTO' && isTire) return false
+
+      if (!showZeroStock && item.availableQty === 0) return false
+
       if (!query) return true
       const name = item.product.name.toLowerCase()
       const details = formatDetails(item).toLowerCase()
       return name.includes(query) || details.includes(query)
     })
-  }, [data, categoryFilter, search])
+  }, [data, categoryFilter, search, showZeroStock])
 
   return (
     <Content>
       <SectionCard>
         <Typography variant="h6">Залишки</Typography>
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField
             select
             label={FORM_LABELS.category}
@@ -75,19 +80,28 @@ export const StockPage = () => {
             placeholder="275/35R19 100Y XL, бренд, модель..."
             fullWidth
           />
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="body2">Показувати з нульовим залишком</Typography>
+            <Switch
+              checked={showZeroStock}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setShowZeroStock(event.target.checked)
+              }
+            />
+          </Stack>
         </Stack>
 
         {isLoading && <CircularProgress size={28} />}
         {isError && <Alert severity="error">{ERROR_MESSAGES.loadStock}</Alert>}
 
         {!isLoading && (
-          <Table size="small">
+          <Table size="small" sx={{ tableLayout: 'fixed' }}>
             <TableHead>
               <TableRow>
-                <TableCell>{TABLE_HEADERS.product}</TableCell>
-                <TableCell>{FORM_LABELS.category}</TableCell>
-                <TableCell>{TABLE_HEADERS.details}</TableCell>
-                <TableCell>Залишок</TableCell>
+                <TableCell sx={{ width: '40%' }}>{TABLE_HEADERS.product}</TableCell>
+                <TableCell sx={{ width: '20%' }}>{FORM_LABELS.category}</TableCell>
+                <TableCell sx={{ width: '30%' }}>{TABLE_HEADERS.details}</TableCell>
+                <TableCell sx={{ width: '10%' }}>Залишок</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
