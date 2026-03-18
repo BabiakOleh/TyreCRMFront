@@ -34,13 +34,11 @@ import {
   prepareOrderItems
 } from '../utils/order'
 import { formatMoney, parseMoneyToCents } from '../utils/money'
-import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
+import { useOrderItems } from '../hooks/useOrderItems'
+import { useSalesStockValidation } from '../hooks/useSalesStockValidation'
 import { TABLE_HEADERS } from '../constants/labels'
 import { ERROR_MESSAGES } from '../constants/messages'
-
-type ItemRow = BaseItemRow & {
-  productId: string
-}
+import type { SalesItemRow, SalesStockInfo } from '../types/sales'
 
 export const SalesPage = () => {
   const { data = [], isLoading, isError } = useGetSalesQuery()
@@ -57,7 +55,7 @@ export const SalesPage = () => {
   const [orderDate, setOrderDate] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const { items, setItems, addRow, removeRow, updateRow, totalCents, resetItems } =
-    useOrderItems<ItemRow>(() => ({
+    useOrderItems<SalesItemRow>(() => ({
       rowId: '',
       productId: '',
       quantity: '1',
@@ -123,15 +121,14 @@ export const SalesPage = () => {
   }, [inStockOptions, items, stockMap])
 
   const stockInfoByProductId = useMemo(() => {
-    const map = new Map<string, { label: string; availableQty: number }>()
+    const map = new Map<string, SalesStockInfo>()
     allOptions.forEach((option) => {
       map.set(option.id, { label: option.label, availableQty: option.availableQty })
     })
     return map
   }, [allOptions])
 
-
-  const mapItemToPrepared = (item: ItemRow) => {
+  const mapItemToPrepared = (item: SalesItemRow) => {
     const quantity = Math.max(0, Number(item.quantity) || 0)
     const priceCents = Math.max(0, parseMoneyToCents(item.price))
 
@@ -142,37 +139,13 @@ export const SalesPage = () => {
     }
   }
 
-  const validateStockForItems = () => {
-    const violations: string[] = []
-
-    items.forEach((item) => {
-      if (!item.productId) return
-      const qty = Math.max(0, Number(item.quantity) || 0)
-      if (qty === 0) return
-      const info = stockInfoByProductId.get(item.productId)
-      if (!info) return
-      const originalQty =
-        editingId && editingOrder
-          ? editingOrder.items?.find((orderItem) => orderItem.product.id === item.productId)
-              ?.quantity ?? 0
-          : 0
-      const maxAllowedQty = editingId ? originalQty + info.availableQty : info.availableQty
-      if (qty > maxAllowedQty) {
-        violations.push(
-          `${info.label} (доступно: ${info.availableQty}, максимум: ${maxAllowedQty}, вказано: ${qty})`
-        )
-      }
-    })
-
-    if (violations.length > 0) {
-      setStockWarning(
-        `Недостатньо залишку для таких позицій:\n${violations.join('\n')}`
-      )
-      return false
-    }
-
-    return true
-  }
+  const { validateStockForItems, getMaxAllowedQty } = useSalesStockValidation({
+    items,
+    stockInfoByProductId,
+    editingId,
+    editingOrder,
+    setStockWarning
+  })
 
   const handleCreate = async () => {
     setFormError(null)
@@ -262,7 +235,7 @@ export const SalesPage = () => {
     if (!editingOrder) return
     setCustomerId(editingOrder.counterparty?.id ?? '')
     setOrderDate(editingOrder.orderDate?.slice(0, 10) ?? '')
-    const mappedItems =
+    const mappedItems: SalesItemRow[] =
       editingOrder.items?.map((item) => ({
         rowId: item.id,
         productId: item.product.id,
@@ -275,13 +248,13 @@ export const SalesPage = () => {
         ? mappedItems
         : [{ rowId: 'row-1', productId: '', quantity: '1', price: '' }]
     )
-  }, [editingOrder])
+  }, [editingOrder, setItems])
 
   return (
     <Content>
       <SectionCard>
         <Typography variant="h6">
-        {editingId && editingOrder
+          {editingId && editingOrder
             ? `Редагування документу №${
                 editingOrder.documentNumber ??
                 editingOrder.id.slice(0, 8).toUpperCase()
@@ -318,18 +291,7 @@ export const SalesPage = () => {
                     ? stockInfoByProductId.get(item.productId)
                     : undefined
                   const availableQty = stockInfo?.availableQty
-                  const originalQty =
-                    editingId && editingOrder && item.productId
-                      ? editingOrder.items?.find(
-                          (orderItem) => orderItem.product.id === item.productId
-                        )?.quantity ?? 0
-                      : 0
-                  const maxAllowedQty =
-                    typeof availableQty === 'number' && availableQty >= 0
-                      ? editingId
-                        ? originalQty + availableQty
-                        : availableQty
-                      : undefined
+                  const maxAllowedQty = getMaxAllowedQty(item.productId, availableQty)
                   const quantityError =
                     typeof maxAllowedQty === 'number' && maxAllowedQty >= 0 && qty > maxAllowedQty
                       ? `Недостатньо залишку (максимум: ${maxAllowedQty})`
