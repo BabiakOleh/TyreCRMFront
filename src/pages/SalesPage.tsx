@@ -1,23 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography
-} from '@mui/material'
+import { MenuItem, Stack, TableCell, TextField, Typography } from '@mui/material'
 import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
 import { OrderFormActions } from '../components/orders/OrderFormActions'
 import { OrderFormAlerts } from '../components/orders/OrderFormAlerts'
 import { OrderFormHeader } from '../components/orders/OrderFormHeader'
 import { OrderItemsFooter } from '../components/orders/OrderItemsFooter'
-import { OrderItemQuantityPrice } from '../components/orders/OrderItemQuantityPrice'
+import { OrderItemsTable } from '../components/orders/OrderItemsTable'
 import { OrdersTable } from '../components/orders/OrdersTable'
 import { RemoveRowButton } from '../components/orders/RemoveRowButton'
 import {
@@ -271,80 +260,50 @@ export const SalesPage = () => {
             counterpartyOptions={customers}
           />
 
-          <TableContainer>
-            <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: '46%' }}>{TABLE_HEADERS.product}</TableCell>
-                  <TableCell sx={{ width: '10%' }}>{TABLE_HEADERS.quantity}</TableCell>
-                  <TableCell sx={{ width: '19%' }}>{TABLE_HEADERS.price}</TableCell>
-                  <TableCell sx={{ width: '15%' }}>{TABLE_HEADERS.amount}</TableCell>
-                  <TableCell sx={{ width: '10%' }} />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((item) => {
-                  const qty = Number(item.quantity)
-                  const rowTotal =
-                    item.productId && qty > 0 ? parseMoneyToCents(item.price) * qty : 0
-                  const stockInfo = item.productId
-                    ? stockInfoByProductId.get(item.productId)
-                    : undefined
-                  const availableQty = stockInfo?.availableQty
-                  const maxAllowedQty = getMaxAllowedQty(item.productId, availableQty)
-                  const quantityError =
-                    typeof maxAllowedQty === 'number' && maxAllowedQty >= 0 && qty > maxAllowedQty
-                      ? `Недостатньо залишку (максимум: ${maxAllowedQty})`
-                      : null
-
-                  return (
-                    <TableRow
-                      key={item.rowId}
-                      sx={{
-                        '&:hover': { bgcolor: 'action.hover' }
-                      }}
-                    >
-                      <TableCell sx={{ py: 1.5 }}>
-                        <TextField
-                          select
-                          value={item.productId}
-                          onChange={(event) =>
-                            updateRow(item.rowId, { productId: event.target.value })
-                          }
-                          fullWidth
-                        >
-                          {allOptions.map((option) => (
-                            <MenuItem key={option.id} value={option.id}>
-                              {option.label} (залишок: {option.availableQty})
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </TableCell>
-                      <OrderItemQuantityPrice
-                        quantity={item.quantity}
-                        price={item.price}
-                        onQuantityChange={(value: string) =>
-                          updateRow(item.rowId, { quantity: value })
-                        }
-                        onPriceChange={(value: string) =>
-                          updateRow(item.rowId, { price: value })
-                        }
-                        maxQuantity={maxAllowedQty}
-                        quantityError={quantityError}
-                      />
-                      <TableCell sx={{ py: 1.5 }}>{formatMoney(rowTotal)}</TableCell>
-                      <TableCell sx={{ py: 1.5 }}>
-                        <RemoveRowButton
-                          onRemove={() => removeRow(item.rowId)}
-                          disabled={items.length === 1}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <OrderItemsTable
+            items={items}
+            canRemove={items.length > 1}
+            renderLeadingCells={(item) => (
+              <TableCell sx={{ py: 1.5 }}>
+                <TextField
+                  select
+                  value={item.productId}
+                  onChange={(event) =>
+                    updateRow(item.rowId, { productId: event.target.value })
+                  }
+                  fullWidth
+                >
+                  {allOptions.map((option) => (
+                    <MenuItem key={option.id} value={option.id}>
+                      {option.label} (залишок: {option.availableQty})
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </TableCell>
+            )}
+            getRowTotalCents={(item) => {
+              const qty = Number(item.quantity)
+              return item.productId && qty > 0
+                ? parseMoneyToCents(item.price) * qty
+                : 0
+            }}
+            onQuantityChange={(rowId, value) => updateRow(rowId, { quantity: value })}
+            onPriceChange={(rowId, value) => updateRow(rowId, { price: value })}
+            onRemove={removeRow}
+            getQuantityMeta={(item) => {
+              const stockInfo = item.productId
+                ? stockInfoByProductId.get(item.productId)
+                : undefined
+              const availableQty = stockInfo?.availableQty
+              const maxAllowedQty = getMaxAllowedQty(item.productId, availableQty)
+              const qty = Number(item.quantity)
+              const quantityError =
+                typeof maxAllowedQty === 'number' && maxAllowedQty >= 0 && qty > maxAllowedQty
+                  ? `Недостатньо залишку (максимум: ${maxAllowedQty})`
+                  : null
+              return { maxQuantity: maxAllowedQty, quantityError }
+            }}
+          />
 
           <OrderItemsFooter onAddRow={addRow} totalCents={totalCents} />
 
