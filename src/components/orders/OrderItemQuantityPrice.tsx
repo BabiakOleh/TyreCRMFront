@@ -5,13 +5,17 @@ type Props = {
   price: string
   onQuantityChange: (value: string) => void
   onPriceChange: (value: string) => void
+  maxQuantity?: number
+  quantityError?: string | null
 }
 
 export const OrderItemQuantityPrice = ({
   quantity,
   price,
   onQuantityChange,
-  onPriceChange
+  onPriceChange,
+  maxQuantity,
+  quantityError
 }: Props) => {
   const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const raw = event.target.value.trim().replace(',', '.')
@@ -26,6 +30,11 @@ export const OrderItemQuantityPrice = ({
     }
 
     if (num <= 0) {
+      return
+    }
+
+    if (typeof maxQuantity === 'number' && maxQuantity > 0 && num > maxQuantity) {
+      onQuantityChange(String(maxQuantity))
       return
     }
 
@@ -59,6 +68,8 @@ export const OrderItemQuantityPrice = ({
           onChange={handleQuantityChange}
           inputMode="numeric"
           size="small"
+          error={Boolean(quantityError)}
+          helperText={quantityError ?? ' '}
         />
       </TableCell>
       <TableCell sx={{ width: 110 }}>

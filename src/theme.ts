@@ -27,6 +27,7 @@ export const theme = createTheme({
     },
     MuiButton: {
       defaultProps: {
+        size: 'small',
         disableElevation: true
       }
     }

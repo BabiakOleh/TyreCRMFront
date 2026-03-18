@@ -89,7 +89,8 @@ export const ProductSection = () => {
       tireModelId: '',
       tireIsXL: false,
       tireIsRunFlat: false,
-      autoSubcategoryId: ''
+      autoSubcategoryId: '',
+      isActive: true
     },
     enableReinitialize: true,
     validate: (values) => {
@@ -144,7 +145,8 @@ export const ProductSection = () => {
         tireIsRunFlat: values.tireIsRunFlat,
         autoBrand: values.autoBrand.trim() || undefined,
         autoModel: values.autoModel.trim() || undefined,
-        autoSubcategoryId: values.autoSubcategoryId || undefined
+        autoSubcategoryId: values.autoSubcategoryId || undefined,
+        isActive: values.isActive
       }
 
       if (editingProductId) {
@@ -180,7 +182,8 @@ export const ProductSection = () => {
       tireModelId: product.tireDetails?.model?.id ?? '',
       tireIsXL: Boolean(product.tireDetails?.isXL),
       tireIsRunFlat: Boolean(product.tireDetails?.isRunFlat),
-      autoSubcategoryId: product.autoDetails?.subcategory?.id ?? ''
+      autoSubcategoryId: product.autoDetails?.subcategory?.id ?? '',
+      isActive: product.isActive
     })
   }
 
@@ -211,6 +214,20 @@ export const ProductSection = () => {
       <Typography variant="h6">Товари</Typography>
 
       <Form onSubmit={formik.handleSubmit}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Typography variant="subtitle1">Статус товару:</Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="isActive"
+                checked={formik.values.isActive}
+                onChange={formik.handleChange}
+              />
+            }
+            label={formik.values.isActive ? 'Активний' : 'Неактивний'}
+          />
+        </Stack>
+
                 <TextField
           select
           label="Категорія"

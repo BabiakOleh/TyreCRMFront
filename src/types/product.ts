@@ -6,6 +6,7 @@ import type { AutoSubcategory } from './autoSubcategory'
 export type Product = {
   id: string
   name: string
+  isActive: boolean
   unit?: Unit | null
   category: Category
   tireDetails?: TireProduct | null
@@ -27,6 +28,7 @@ export type CreateProductInput = {
   autoBrand?: string
   autoModel?: string
   autoSubcategoryId?: string
+  isActive?: boolean
 }
 
 export type UpdateProductInput = CreateProductInput & {

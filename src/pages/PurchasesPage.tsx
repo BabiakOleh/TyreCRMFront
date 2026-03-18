@@ -94,9 +94,7 @@ export const PurchasesPage = () => {
 
   const getTireDetailKey = (detail?: typeof tireProducts[number]['tireDetails']) =>
     detail
-      ? `${detail.size}|${detail.loadIndex?.code ?? ''}|${detail.speedIndex?.code ?? ''}|${
-          detail.isXL ? '1' : '0'
-        }|${detail.isRunFlat ? '1' : '0'}`
+      ? `${detail.size}|${detail.loadIndex?.code ?? ''}|${detail.speedIndex?.code ?? ''}`
       : ''
 
   const getTireDetailLabel = (detail?: typeof tireProducts[number]['tireDetails']) =>
@@ -342,7 +340,14 @@ export const PurchasesPage = () => {
   return (
     <Content>
       <SectionCard>
-        <Typography variant="h6">Нова закупка</Typography>
+        <Typography variant="h6">
+          {editingId && editingOrder
+            ? `Редагування документу №${
+                editingOrder.documentNumber ??
+                editingOrder.id.slice(0, 8).toUpperCase()
+              }`
+            : 'Нова закупка'}
+        </Typography>
         <Stack spacing={2}>
           <OrderFormHeader
             counterpartyLabel="Постачальник"

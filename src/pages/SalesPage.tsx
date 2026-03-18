@@ -298,6 +298,15 @@ export const SalesPage = () => {
                   const qty = Number(item.quantity)
                   const rowTotal =
                     item.productId && qty > 0 ? parseMoneyToCents(item.price) * qty : 0
+                  const stockInfo = item.productId
+                    ? stockInfoByProductId.get(item.productId)
+                    : undefined
+                  const availableQty = stockInfo?.availableQty
+                  const quantityError =
+                    typeof availableQty === 'number' && availableQty >= 0 && qty > availableQty
+                      ? `Недостатньо залишку (доступно: ${availableQty})`
+                      : null
+
                   return (
                     <TableRow
                       key={item.rowId}
@@ -330,6 +339,8 @@ export const SalesPage = () => {
                         onPriceChange={(value: string) =>
                           updateRow(item.rowId, { price: value })
                         }
+                        maxQuantity={availableQty}
+                        quantityError={quantityError}
                       />
                       <TableCell sx={{ py: 1.5 }}>{formatMoney(rowTotal)}</TableCell>
                       <TableCell sx={{ py: 1.5 }}>

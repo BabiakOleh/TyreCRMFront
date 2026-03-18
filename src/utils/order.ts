@@ -7,7 +7,8 @@ export type OrderItemInput = {
 }
 
 export const ERR_NO_ITEMS = 'Додайте хоча б один товар'
-export const ERR_STOCK = 'Недостатньо залишку для продажу'
+export const ERR_STOCK =
+  'Недостатньо залишку: операція призведе до від’ємного залишку. Перевірте документи продажу та закупки.'
 
 export function prepareOrderItems<T>(
   items: T[],
