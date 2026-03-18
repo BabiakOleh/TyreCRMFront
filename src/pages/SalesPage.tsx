@@ -151,9 +151,15 @@ export const SalesPage = () => {
       if (qty === 0) return
       const info = stockInfoByProductId.get(item.productId)
       if (!info) return
-      if (qty > info.availableQty) {
+      const originalQty =
+        editingId && editingOrder
+          ? editingOrder.items?.find((orderItem) => orderItem.product.id === item.productId)
+              ?.quantity ?? 0
+          : 0
+      const maxAllowedQty = editingId ? originalQty + info.availableQty : info.availableQty
+      if (qty > maxAllowedQty) {
         violations.push(
-          `${info.label} (доступно: ${info.availableQty}, вказано: ${qty})`
+          `${info.label} (доступно: ${info.availableQty}, максимум: ${maxAllowedQty}, вказано: ${qty})`
         )
       }
     })
@@ -232,6 +238,9 @@ export const SalesPage = () => {
       return
     }
     setEditingId(null)
+    setCustomerId('')
+    setOrderDate('')
+    resetItems()
   }
 
   const handleSubmit = async () => {
@@ -271,7 +280,14 @@ export const SalesPage = () => {
   return (
     <Content>
       <SectionCard>
-        <Typography variant="h6">Новий продаж</Typography>
+        <Typography variant="h6">
+        {editingId && editingOrder
+            ? `Редагування документу №${
+                editingOrder.documentNumber ??
+                editingOrder.id.slice(0, 8).toUpperCase()
+              }`
+            : 'Нова Продажа'}
+        </Typography>
         <Stack spacing={2}>
           <OrderFormHeader
             counterpartyLabel="Клієнт"
@@ -302,9 +318,21 @@ export const SalesPage = () => {
                     ? stockInfoByProductId.get(item.productId)
                     : undefined
                   const availableQty = stockInfo?.availableQty
+                  const originalQty =
+                    editingId && editingOrder && item.productId
+                      ? editingOrder.items?.find(
+                          (orderItem) => orderItem.product.id === item.productId
+                        )?.quantity ?? 0
+                      : 0
+                  const maxAllowedQty =
+                    typeof availableQty === 'number' && availableQty >= 0
+                      ? editingId
+                        ? originalQty + availableQty
+                        : availableQty
+                      : undefined
                   const quantityError =
-                    typeof availableQty === 'number' && availableQty >= 0 && qty > availableQty
-                      ? `Недостатньо залишку (доступно: ${availableQty})`
+                    typeof maxAllowedQty === 'number' && maxAllowedQty >= 0 && qty > maxAllowedQty
+                      ? `Недостатньо залишку (максимум: ${maxAllowedQty})`
                       : null
 
                   return (
@@ -339,7 +367,7 @@ export const SalesPage = () => {
                         onPriceChange={(value: string) =>
                           updateRow(item.rowId, { price: value })
                         }
-                        maxQuantity={availableQty}
+                        maxQuantity={maxAllowedQty}
                         quantityError={quantityError}
                       />
                       <TableCell sx={{ py: 1.5 }}>{formatMoney(rowTotal)}</TableCell>
