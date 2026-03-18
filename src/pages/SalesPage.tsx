@@ -122,6 +122,14 @@ export const SalesPage = () => {
     return Array.from(map.entries()).map(([id, value]) => ({ id, ...value }))
   }, [inStockOptions, items, stockMap])
 
+  const stockInfoByProductId = useMemo(() => {
+    const map = new Map<string, { label: string; availableQty: number }>()
+    allOptions.forEach((option) => {
+      map.set(option.id, { label: option.label, availableQty: option.availableQty })
+    })
+    return map
+  }, [allOptions])
+
 
   const mapItemToPrepared = (item: ItemRow) => {
     const quantity = Math.max(0, Number(item.quantity) || 0)
@@ -134,11 +142,40 @@ export const SalesPage = () => {
     }
   }
 
+  const validateStockForItems = () => {
+    const violations: string[] = []
+
+    items.forEach((item) => {
+      if (!item.productId) return
+      const qty = Math.max(0, Number(item.quantity) || 0)
+      if (qty === 0) return
+      const info = stockInfoByProductId.get(item.productId)
+      if (!info) return
+      if (qty > info.availableQty) {
+        violations.push(
+          `${info.label} (доступно: ${info.availableQty}, вказано: ${qty})`
+        )
+      }
+    })
+
+    if (violations.length > 0) {
+      setStockWarning(
+        `Недостатньо залишку для таких позицій:\n${violations.join('\n')}`
+      )
+      return false
+    }
+
+    return true
+  }
+
   const handleCreate = async () => {
     setFormError(null)
     setStockWarning(null)
     if (!customerId) {
       setFormError('Оберіть клієнта')
+      return
+    }
+    if (!validateStockForItems()) {
       return
     }
     const preparedItems = prepareOrderItems(items, mapItemToPrepared)
@@ -168,8 +205,12 @@ export const SalesPage = () => {
   const handleUpdate = async () => {
     if (!editingId) return
     setFormError(null)
+    setStockWarning(null)
     if (!customerId) {
       setFormError('Оберіть клієнта')
+      return
+    }
+    if (!validateStockForItems()) {
       return
     }
     const preparedItems = prepareOrderItems(items, mapItemToPrepared)

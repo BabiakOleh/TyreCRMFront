@@ -25,7 +25,6 @@ import { Content } from '../components/layout/PageLayout'
 import { SectionCard } from '../components/shared/SectionCard'
 import {
   useCreateCounterpartyMutation,
-  useDeleteCounterpartyMutation,
   useGetCounterpartiesQuery,
   useSetCounterpartyStatusMutation,
   useUpdateCounterpartyMutation
@@ -82,7 +81,6 @@ export const CounterpartiesPage = () => {
   })
   const [createCounterparty, { isLoading: isCreating }] = useCreateCounterpartyMutation()
   const [updateCounterparty, { isLoading: isUpdating }] = useUpdateCounterpartyMutation()
-  const [deleteCounterparty, { isLoading: isDeleting }] = useDeleteCounterpartyMutation()
   const [setCounterpartyStatus, { isLoading: isToggling }] =
     useSetCounterpartyStatusMutation()
 
@@ -142,13 +140,14 @@ export const CounterpartiesPage = () => {
     })
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Деактивувати контрагента?')) {
-      await deleteCounterparty(id).unwrap()
-      if (editingId === id) {
-        setEditingId(null)
-        formik.resetForm({ values: defaultValues(type) })
-      }
+  const handleDeactivate = async (id: string) => {
+    if (!window.confirm('Деактивувати контрагента?')) {
+      return
+    }
+    await setCounterpartyStatus({ id, isActive: false }).unwrap()
+    if (editingId === id) {
+      setEditingId(null)
+      formik.resetForm({ values: defaultValues(type) })
     }
   }
 
@@ -316,8 +315,8 @@ export const CounterpartiesPage = () => {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(item.id)}
-                        disabled={isDeleting}
+                        onClick={() => handleDeactivate(item.id)}
+                        disabled={isToggling}
                       >
                         <DeleteForeverOutlinedIcon fontSize="small" />
                       </IconButton>
