@@ -5,7 +5,15 @@ import type { CreateProductInput, Product, UpdateProductInput } from '../types/p
 import type { TireBrand, TireLoadIndex, TireSpeedIndex } from '../types/tire'
 import type { Unit } from '../types/unit'
 import type { AutoSubcategory } from '../types/autoSubcategory'
-import type { CreatePurchaseInput, CreateSaleInput, Order, UpdateOrderInput } from '../types/order'
+import type { CashDocument, CreateCashDocumentInput } from '../types/cash'
+import type {
+  CreatePurchaseInput,
+  CreateSaleInput,
+  Order,
+  UpdateOrderInput,
+  UpdateOrderStatusInput
+} from '../types/order'
+import type { ReportSummary } from '../types/report'
 import type { StockItem } from '../types/stock'
 
 export const api = createApi({
@@ -21,7 +29,9 @@ export const api = createApi({
     'AutoSubcategory',
     'TireBrand',
     'Order',
-    'Stock'
+    'Stock',
+    'Cash',
+    'Report'
   ],
   endpoints: (builder) => ({
     getCategories: builder.query<Category[], void>({
@@ -310,7 +320,8 @@ export const api = createApi({
       invalidatesTags: [
         { type: 'Order', id: 'LIST' },
         { type: 'Counterparty', id: 'LIST' },
-        { type: 'Stock', id: 'LIST' }
+        { type: 'Stock', id: 'LIST' },
+        { type: 'Report', id: 'SUMMARY' }
       ]
     }),
     createSale: builder.mutation<Order, CreateSaleInput>({
@@ -322,7 +333,8 @@ export const api = createApi({
       invalidatesTags: [
         { type: 'Order', id: 'LIST' },
         { type: 'Counterparty', id: 'LIST' },
-        { type: 'Stock', id: 'LIST' }
+        { type: 'Stock', id: 'LIST' },
+        { type: 'Report', id: 'SUMMARY' }
       ]
     }),
     updateOrder: builder.mutation<Order, UpdateOrderInput>({
@@ -335,8 +347,48 @@ export const api = createApi({
         { type: 'Order', id: arg.id },
         { type: 'Order', id: 'LIST' },
         { type: 'Counterparty', id: 'LIST' },
-        { type: 'Stock', id: 'LIST' }
+        { type: 'Stock', id: 'LIST' },
+        { type: 'Report', id: 'SUMMARY' }
       ]
+    }),
+    updateOrderStatus: builder.mutation<Order, { id: string } & UpdateOrderStatusInput>({
+      query: ({ id, status }) => ({
+        url: `/orders/${id}/status`,
+        method: 'PATCH',
+        body: { status }
+      }),
+      invalidatesTags: (_result, _error, arg) => [
+        { type: 'Order', id: arg.id },
+        { type: 'Order', id: 'LIST' },
+        { type: 'Stock', id: 'LIST' },
+        { type: 'Report', id: 'SUMMARY' },
+        { type: 'Cash', id: 'LIST' }
+      ]
+    }),
+    getCashDocuments: builder.query<
+      CashDocument[],
+      { from?: string; to?: string; type?: string; subtype?: string; counterpartyId?: string }
+    >({
+      query: (params) => ({
+        url: '/cash-documents',
+        params
+      }),
+      providesTags: [{ type: 'Cash', id: 'LIST' }]
+    }),
+    createCashDocument: builder.mutation<CashDocument, CreateCashDocumentInput>({
+      query: (body) => ({
+        url: '/cash-documents',
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: [{ type: 'Cash', id: 'LIST' }, { type: 'Report', id: 'SUMMARY' }]
+    }),
+    getReportSummary: builder.query<ReportSummary, { from?: string; to?: string } | void>({
+      query: (arg) => ({
+        url: '/reports/summary',
+        params: arg ?? {}
+      }),
+      providesTags: [{ type: 'Report', id: 'SUMMARY' }]
     }),
     getStock: builder.query<StockItem[], void>({
       query: () => '/stock',
@@ -372,5 +424,9 @@ export const {
   useCreatePurchaseMutation,
   useCreateSaleMutation,
   useUpdateOrderMutation,
+  useUpdateOrderStatusMutation,
+  useGetCashDocumentsQuery,
+  useCreateCashDocumentMutation,
+  useGetReportSummaryQuery,
   useGetStockQuery
 } = api

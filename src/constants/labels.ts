@@ -1,5 +1,6 @@
 export const TABLE_HEADERS = {
   date: 'Дата',
+  status: 'Статус',
   documentNumber: 'Номер документа',
   client: 'Клієнт',
   supplier: 'Постачальник',
@@ -21,6 +22,7 @@ export const NAV_ITEMS_LABELS = {
   sales: 'Продажі',
   purchases: 'Закупки',
   stock: 'Залишки',
+  cash: 'Каса',
   report: 'Звіт'
 } as const
 

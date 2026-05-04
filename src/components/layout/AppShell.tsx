@@ -21,6 +21,7 @@ const pageTitles: Record<string, { title: string; subtitle?: string }> = {
   '/sales': { title: 'Продажі' },
   '/purchases': { title: 'Закупки' },
   '/stock': { title: 'Залишки' },
+  '/cash': { title: 'Каса' },
   '/report': { title: 'Звіт' },
   '/reference': { title: 'Довідник' },
 }

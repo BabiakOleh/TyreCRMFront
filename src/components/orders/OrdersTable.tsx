@@ -1,8 +1,10 @@
 import {
   Alert,
   Button,
+  Chip,
   CircularProgress,
   IconButton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -14,6 +16,8 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useNavigate } from 'react-router-dom'
 import type { Order } from '../../types/order'
 import { formatDate, formatMoney } from '../../utils/money'
+import { getStatusColor, getStatusLabel, canEditOrder } from '../../utils/orderStatus'
+import { OrderStatusActions } from './OrderStatusActions'
 import { TABLE_HEADERS } from '../../constants/labels'
 import { ERROR_MESSAGES } from '../../constants/messages'
 
@@ -54,8 +58,9 @@ export const OrdersTable = ({
                 <TableCell>{counterpartyColumnLabel}</TableCell>
                 <TableCell>{TABLE_HEADERS.amount}</TableCell>
                 <TableCell>{TABLE_HEADERS.currency}</TableCell>
+                <TableCell>{TABLE_HEADERS.status}</TableCell>
                 <TableCell>{TABLE_HEADERS.details}</TableCell>
-                <TableCell />
+                <TableCell>Дії</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -76,20 +81,35 @@ export const OrdersTable = ({
                   <TableCell sx={{ py: 1.5 }}>{formatMoney(order.totalCents)}</TableCell>
                   <TableCell sx={{ py: 1.5 }}>UAH</TableCell>
                   <TableCell sx={{ py: 1.5 }}>
+                    <Chip
+                      size="small"
+                      label={getStatusLabel(order.status)}
+                      color={getStatusColor(order.status)}
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell sx={{ py: 1.5 }}>
                     <Button size="small" onClick={() => navigate(`${basePath}/${order.id}`)}>
                       Відкрити
                     </Button>
                   </TableCell>
                   <TableCell sx={{ py: 1.5 }}>
-                    <IconButton size="small" onClick={() => onEdit(order.id)}>
-                      <EditOutlinedIcon fontSize="small" />
-                    </IconButton>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <OrderStatusActions orderId={order.id} status={order.status} compact />
+                      <IconButton
+                        size="small"
+                        disabled={!canEditOrder(order.status)}
+                        onClick={() => onEdit(order.id)}
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
               {orders.length === 0 && (
                 <TableRow>
-                  <TableCell sx={{ py: 1.5 }} colSpan={7}>
+                  <TableCell sx={{ py: 1.5 }} colSpan={8}>
                     Немає даних
                   </TableCell>
                 </TableRow>

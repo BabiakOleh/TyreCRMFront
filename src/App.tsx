@@ -4,6 +4,7 @@ import { CounterpartiesPage } from './pages/CounterpartiesPage'
 import { ProductsPage } from './pages/ProductsPage'
 import { PurchasesPage } from './pages/PurchasesPage'
 import { PurchaseDetailsPage } from './pages/PurchaseDetailsPage'
+import { CashPage } from './pages/CashPage'
 import { ReportPage } from './pages/ReportPage'
 import { SalesPage } from './pages/SalesPage'
 import { SalesDetailsPage } from './pages/SalesDetailsPage'
@@ -23,6 +24,7 @@ function App() {
           <Route path="/purchases" element={<PurchasesPage />} />
           <Route path="/purchases/:id" element={<PurchaseDetailsPage />} />
           <Route path="/stock" element={<StockPage />} />
+          <Route path="/cash" element={<CashPage />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="/reference" element={<ReferencePage />} />
         </Route>

@@ -27,6 +27,7 @@ import { useOrderItems } from '../hooks/useOrderItems'
 import { useSalesStockValidation } from '../hooks/useSalesStockValidation'
 import { TABLE_HEADERS } from '../constants/labels'
 import { ERROR_MESSAGES } from '../constants/messages'
+import { canEditOrder } from '../utils/orderStatus'
 import type { SalesItemRow, SalesStockInfo } from '../types/sales'
 
 export const SalesPage = () => {
@@ -221,6 +222,15 @@ export const SalesPage = () => {
   }
 
   useEffect(() => {
+    if (editingId && editingOrder && !canEditOrder(editingOrder.status)) {
+      setEditingId(null)
+      setCustomerId('')
+      setOrderDate('')
+      resetItems()
+    }
+  }, [editingId, editingOrder, resetItems])
+
+  useEffect(() => {
     if (!editingOrder) return
     setCustomerId(editingOrder.counterparty?.id ?? '')
     setOrderDate(editingOrder.orderDate?.slice(0, 10) ?? '')
@@ -331,7 +341,11 @@ export const SalesPage = () => {
           isError={isError}
           basePath="/sales"
           counterpartyColumnLabel="Клієнт"
-          onEdit={setEditingId}
+          onEdit={(id) => {
+            const o = data.find((x) => x.id === id)
+            if (!o || !canEditOrder(o.status)) return
+            setEditingId(id)
+          }}
         />
       </SectionCard>
     </Content>

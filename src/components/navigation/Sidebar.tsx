@@ -2,6 +2,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined'
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
@@ -38,6 +39,11 @@ const navItems = [
     to: '/stock',
     label: NAV_ITEMS_LABELS.stock,
     icon: <WarehouseOutlinedIcon fontSize="small" />
+  },
+  {
+    to: '/cash',
+    label: NAV_ITEMS_LABELS.cash,
+    icon: <AccountBalanceWalletOutlinedIcon fontSize="small" />
   },
   {
     to: '/report',

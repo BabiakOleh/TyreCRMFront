@@ -21,6 +21,7 @@ import { formatMoney, parseMoneyToCents } from '../utils/money'
 import { useOrderItems, type BaseItemRow } from '../hooks/useOrderItems'
 import { TABLE_HEADERS } from '../constants/labels'
 import { ERROR_MESSAGES } from '../constants/messages'
+import { canEditOrder } from '../utils/orderStatus'
 
 type ItemRow = BaseItemRow & {
   productId: string
@@ -165,6 +166,15 @@ export const PurchasesPage = () => {
   }
 
   useEffect(() => {
+    if (editingId && editingOrder && !canEditOrder(editingOrder.status)) {
+      setEditingId(null)
+      setSupplierId('')
+      setOrderDate('')
+      resetItems()
+    }
+  }, [editingId, editingOrder, resetItems])
+
+  useEffect(() => {
     if (!editingOrder) return
     setSupplierId(editingOrder.counterparty?.id ?? '')
     setOrderDate(editingOrder.orderDate?.slice(0, 10) ?? '')
@@ -269,7 +279,11 @@ export const PurchasesPage = () => {
           isError={isError}
           basePath="/purchases"
           counterpartyColumnLabel="Постачальник"
-          onEdit={setEditingId}
+          onEdit={(id) => {
+            const o = data.find((x) => x.id === id)
+            if (!o || !canEditOrder(o.status)) return
+            setEditingId(id)
+          }}
         />
       </SectionCard>
     </Content>

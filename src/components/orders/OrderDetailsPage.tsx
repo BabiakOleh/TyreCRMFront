@@ -1,6 +1,8 @@
 import {
   Alert,
+  Chip,
   CircularProgress,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -13,6 +15,8 @@ import { Content } from '../layout/PageLayout'
 import { SectionCard } from '../shared/SectionCard'
 import { useGetOrderByIdQuery } from '../../store/api'
 import { formatDate, formatMoney } from '../../utils/money'
+import { getStatusColor, getStatusLabel } from '../../utils/orderStatus'
+import { OrderStatusActions } from './OrderStatusActions'
 import { TABLE_HEADERS } from '../../constants/labels'
 import { ERROR_MESSAGES } from '../../constants/messages'
 
@@ -33,9 +37,17 @@ export const OrderDetailsPage = ({ title, counterpartyLabel }: Props) => {
         {isError && <Alert severity="error">{ERROR_MESSAGES.loadDocument}</Alert>}
         {data && (
           <>
-            <Typography variant="body2">
-              Номер: {data.documentNumber ?? data.id.slice(0, 8).toUpperCase()}
-            </Typography>
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap', my: 1 }}>
+              <Typography variant="body2">
+                Номер: {data.documentNumber ?? data.id.slice(0, 8).toUpperCase()}
+              </Typography>
+              <Chip
+                size="small"
+                label={getStatusLabel(data.status)}
+                color={getStatusColor(data.status)}
+              />
+              <OrderStatusActions orderId={data.id} status={data.status} />
+            </Stack>
             <Typography variant="body2">Дата: {formatDate(data.orderDate)}</Typography>
             <Typography variant="body2">
               {counterpartyLabel}: {data.counterparty?.name ?? '—'}

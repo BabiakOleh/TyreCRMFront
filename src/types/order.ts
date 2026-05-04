@@ -44,3 +44,7 @@ export type CreateSaleInput = {
 export type UpdateOrderInput = (CreatePurchaseInput | CreateSaleInput) & {
   id: string
 }
+
+export type UpdateOrderStatusInput = {
+  status: 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
+}
